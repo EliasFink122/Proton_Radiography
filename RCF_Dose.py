@@ -56,10 +56,10 @@ import Plot_Master as pm
 def find_bound_points(data_x, data_y, x, x_dev, y, y_dev, sigma, active=True):
     '''
     Find points bounded by sigma times the deviation from some curve
-    
+
     Returns points within those bounds, as well as the paths of the boundaries.
     '''
-    
+
     ny, nx = data_x.shape # Data arrays should have the same dimensions
     assert (data_x.shape == data_y.shape and 
             len(x) == len(y)), "Data arrays must have the same shape!!!"
@@ -68,23 +68,23 @@ def find_bound_points(data_x, data_y, x, x_dev, y, y_dev, sigma, active=True):
         # Find points in XY plane bounded by X deviation
         XY_pathX = np.concatenate((np.array([x-sigma*x_dev, y]), np.array([x+sigma*x_dev, y])[:,::-1]), axis=1)
         XY_pathX = XY_pathX.T
-    
+
         XY_boundX = path.Path(XY_pathX)
         XY_pointsX = XY_boundX.contains_points(np.array([data_x.flatten(), data_y.flatten()]).T)
-        
+
         XY_pointsX = XY_pointsX.reshape(ny,nx)
-    
+
         # Find points in XY plane bounded by Y deviation
         XY_pathY = np.concatenate((np.array([x, y-sigma*y_dev]), np.array([x, y+sigma*y_dev])[:,::-1]), axis=1)
         XY_pathY = XY_pathY.T
-        
+
         XY_boundY = path.Path(XY_pathY)
         XY_pointsY = XY_boundY.contains_points(np.array([data_x.flatten(), data_y.flatten()]).T)
-        
+
         XY_pointsY = XY_pointsY.reshape(ny,nx)
-        
+
         XY_points = XY_pointsX * XY_pointsY # Combine
-    
+
     else:
         XY_points = np.ones(data_x.shape, dtype=bool) 
         XY_pathX = XY_pathY = None
@@ -104,12 +104,12 @@ def clean_array(data, project, shot, layer, channels=[1,1,1], OD=False,
         function, order is ["RG","RB","GB"].
     '''
     print("Extracting all data within {} sigma of calibration curve.".format(sigma))
-    
+
     # Load stack composition to get correct calibration curves
     stack_composition = rcf.get_stack_design(project, shot, info="material")
-    
+
     nlayer = rcf.letter_to_num(layer) 
-    
+
     layer_material = stack_composition[nlayer-1] #Subtract 1 because letter 1 is A, but array start is 0
 
     R_dose, R_val, R_dev = get_calibration(layer_material, 0, scanner=scanner, 
@@ -121,12 +121,12 @@ def clean_array(data, project, shot, layer, channels=[1,1,1], OD=False,
     B_dose, B_val, B_dev = get_calibration(layer_material, 2, scanner=scanner, 
                                            material_type=material_type, OD=OD,
                                            calibration="full", plot=False)
-    
+
     # Separate colour channels
     data_R = data[:,:,0]
     data_G = data[:,:,1]
     data_B = data[:,:,2]
-    
+
     # Fix so that when "valid" calibration is used all calibration pixel values 
     # and deviation arrays are the same size/have the same dose values. 
     # This means losing some data... not sure what can be done about this for now.
@@ -147,7 +147,7 @@ def clean_array(data, project, shot, layer, channels=[1,1,1], OD=False,
                                            B_val, B_dev, sigma, channels[1])
     GB_points, GB_path = find_bound_points(data_G, data_B, G_val, G_dev,
                                            B_val, B_dev, sigma, channels[2])
-    
+
     points = RG_points * RB_points * GB_points # Combine
 
     if plot:
@@ -190,7 +190,7 @@ def interp_1D(x, xp, yp, OD, left=None, right=None, mode=None):
         x = np.log10(x)
         xp = np.log10(xp)
         yp = np.log10(yp)
-        
+
     if OD:
         y = np.interp(x, xp, yp, left=left, right=right)
     else:
@@ -198,7 +198,7 @@ def interp_1D(x, xp, yp, OD, left=None, right=None, mode=None):
         y = y_interp(x)
 
     if mode == "log-log":
-         y = 10**y
+        y = 10**y
 
     return y
 
@@ -214,41 +214,41 @@ def interp_nan_2D(data, input_valid=None, interpolator="nearest", plot=False):
     data_interp = np.copy(data) # Create a copy of the array
 
     ny, nx = data.shape[0:2]
-    
+
     xx, yy = np.meshgrid(np.arange(nx), np.arange(ny))
-    
+
     # If positions are provided
     if input_valid is not None:
         array_valid = input_valid
         array_nan = ~array_valid # Array where True if NaN
-        
+
         # Flatten xx and yy arrays and combine
         xym = np.vstack( (np.ravel(xx[array_valid]), np.ravel(yy[array_valid])) ).T
         xym_nan = np.vstack( (np.ravel(xx[array_nan]), np.ravel(yy[array_nan])) ).T
 
     # Interpolate if there are NaNs
     for c in range(3): # Loop through colours
-        
+
         if np.count_nonzero(np.isnan(data[:,:,c])) > 0:
-    
+
             # Find positions to interp for each layer if postions aren't provided
             if input_valid is None: # "|" is bitwise "or" and "~" is bitwise "not"
                 array_nan = np.isnan(data[:,:,c])
                 array_valid = ~array_nan
-                
+
                 xym = np.vstack( (np.ravel(xx[array_valid]), np.ravel(yy[array_valid])) ).T
                 xym_nan = np.vstack( (np.ravel(xx[array_nan]), np.ravel(yy[array_nan])) ).T
-            
+
             # Check how many NaNs exist
             nan_frac = array_nan.sum()/(nx*ny)
             print("C{}: {:.3f} % NaN.".format(c+1, nan_frac*100))
             if nan_frac > 0.01:
                 print("Caution: Image has more than 1% NaN values.")
-                
+
             # The valid values in the first, second, third color channel
             # as 1D arrays (in the same order as their coordinates in xym)
             array_c_valid = np.ravel(data[:,:,c][array_valid])
-            
+
             # Three separate interpolators for the separate color channels
             if interpolator == "linear":   
                 array_c_interp = interp.LinearNDInterpolator(xym, array_c_valid)
@@ -257,16 +257,16 @@ def interp_nan_2D(data, input_valid=None, interpolator="nearest", plot=False):
                 print("NaN interpolator set to nearest for speed.")
             # Example interpolate for whole image for one color channel
             # data_interp[:,:,c] = array_c_interp(np.ravel(xx), np.ravel(yy)).reshape(xx.shape)
-            
+
             # Interpolate only nans, one color channel at a time 
             data_interp[:,:,c][array_nan] = array_c_interp(xym_nan[:,0], xym_nan[:,1])
-            
-    if plot: 
+
+    if plot:
         rcf.plot_comparison([data, data_interp], title_list=["Pre-interp", "Post-interp"],
                             colour=2)
-    
+
     if 0: assert np.sum(np.isnan(data_interp))==0, "NaNs still remaining after interpolation."
-    
+
     return data_interp
 
 
@@ -289,7 +289,7 @@ def convert_dose(data, material, OD=False, scanner=None, material_type=None,
         "log-log" it is performed in log10(px/OD)-log10(dose) space where data is 
         usually more linear.
     '''
-    
+
     data_dose = np.zeros(data.shape)
     data_dose_err = np.zeros(data.shape)
     if test:
@@ -300,7 +300,7 @@ def convert_dose(data, material, OD=False, scanner=None, material_type=None,
         dose, ave_val, ave_dev = get_calibration(material, colour, scanner=scanner,
                                                  material_type=material_type, OD=OD,
                                                  calibration="full", plot=False)
-        
+
         # # Set fill value for lower/upper bounds
         # if fill is None:
         #     fill_lower = np.NaN
@@ -311,18 +311,20 @@ def convert_dose(data, material, OD=False, scanner=None, material_type=None,
             raise Exception("Warning: This will result in errors equal to zero.")
             # Need to either multiply lower/upper min/max values of dose by some number
             # or interpolate over zeros at a later state?
-            
+
         # Convert pixel to dose using 1D interpolation
         data_dose[:,:,colour] = interp_1D(data[:,:,colour], ave_val, dose, OD,
                                           left=fill, right=fill, mode=interp_mode)
-        
+
         # Calculate errors using upper and lower dose given by standard deviation.
         # Whether this is a maximum or minimum dose depends on whether OD or px is used.
         # For OD subtracting leads to lower dose, for px subtracting leads to higher dose.
-        data_dose_err[:,:,colour] = np.absolute(interp_1D(data[:,:,colour], ave_val-ave_dev, dose, OD,
-                                                          left=fill, right=fill, mode=interp_mode)
-                                                - interp_1D(data[:,:,colour], ave_val+ave_dev, dose, OD,
-                                                            left=fill, right=fill, mode=interp_mode))/2
+        data_dose_err[:,:,colour] = np.absolute(interp_1D(data[:,:,colour], ave_val-ave_dev, dose,
+                                                          OD, left=fill, right=fill,
+                                                          mode=interp_mode)
+                                                - interp_1D(data[:,:,colour], ave_val+ave_dev,
+                                                            dose, OD, left=fill, right=fill,
+                                                            mode=interp_mode))/2
 
         if test:
             data_dose_sub_dev[:,:,colour] = interp_1D(data[:,:,colour], ave_val-ave_dev, dose, OD,
@@ -331,7 +333,7 @@ def convert_dose(data, material, OD=False, scanner=None, material_type=None,
             data_dose_add_dev[:,:,colour] = interp_1D(data[:,:,colour], ave_val+ave_dev, dose, OD,
                                                       left=fill, right=fill,
                                                       mode=interp_mode)
-                
+
     # Plot x/y average and errors for the three channels
     if test:
         fig, ax = pm.plot_figure_axis("small", 6, shape=2, ratio=[1,0.66])
@@ -340,7 +342,8 @@ def convert_dose(data, material, OD=False, scanner=None, material_type=None,
         xy = [x,y]
         for c in range(3):
             for i in [0,1]: # x/yy axis averages
-                ax[c+i*3].plot(xy[i], np.average(data_dose[:,:,c], axis=1-i), label=r"$\langle D \rangle$")
+                ax[c+i*3].plot(xy[i], np.average(data_dose[:,:,c], axis=1-i),
+                               label=r"$\langle D \rangle$")
                 ax[c+i*3].fill_between(xy[i], np.average(data_dose[:,:,c], axis=1-i)-np.average(data_dose_err[:,:,c], axis=1-i),
                                    np.average(data_dose[:,:,c], axis=1-i)+np.average(data_dose_err[:,:,c], axis=1-i),
                                    alpha=0.25)
@@ -374,17 +377,17 @@ def dose_data(project, data, shot, layers, OD=False, scanner=None,
     clean_chan: list corresponding to ["RG","RB","GB"], if 1 then this channel
         combination will be used in the cleaning phase, otherwise it won't be.
     '''
-    
+
     # Get stack information
     stack_composition = rcf.get_stack_design(project, shot, info="material")
-    
+
     # Lists for storing processed stack
     data_dose_raw = []
     data_dose_clean = []
     # data_dose_err_clean = []
     data_dose = []
     data_dose_err = []
-    
+
     # Iterate through layers
     n = 0
     for layer in layers:
@@ -394,7 +397,7 @@ def dose_data(project, data, shot, layers, OD=False, scanner=None,
         
         layer_RGB = data[n] # First layer
         ny, nx = layer_RGB.shape[0:2] # Dimensions of image
-        
+
         # Convert intensity to OD if set
         if OD == True:
             # Get null data - should be setup so we can just take average
@@ -409,7 +412,7 @@ def dose_data(project, data, shot, layers, OD=False, scanner=None,
             layer_RGB, error_RGB = convert_intensity_OD_RGB(layer_RGB, 0, null_ave, null_std)
         else:
             error_RBG = np.zeros(layer_RGB.shape) # This should probably feed into convert_dose function
-            
+
         # Setup to clean RCF layer of dust/scratches etc.
         if clean==True: # Boolean array containing positions of "real" data (=True where real)
             print("Cleaning radiographs.")
@@ -418,17 +421,17 @@ def dose_data(project, data, shot, layers, OD=False, scanner=None,
                                       sigma=sigma, plot=plot)
         else:
             layer_clean = np.ones((ny,nx))
-            
+
         # Convert pixel value to dose
         print("Dosing radiographs.")
         layer_dose, layer_dose_err = convert_dose(layer_RGB, layer_material, 
                                                   OD=OD, scanner=scanner, 
                                                   material_type=material_type)
-        
+
         # Apply cleaning array (interp next) - this makes invalid values 0
         layer_dose_clean = layer_dose * layer_clean[:,:,np.newaxis]
         layer_dose_err_clean = layer_dose_err * layer_clean[:,:,np.newaxis]
-        
+
         # Store raw/cleaned data
         data_dose_raw.append(layer_dose)
         data_dose_clean.append(layer_dose_clean)
@@ -436,7 +439,7 @@ def dose_data(project, data, shot, layers, OD=False, scanner=None,
         if plot:
             rcf.plot_data(data_dose_clean[-1], colour=cout, 
                           title="RCF Clean RGB (Clean={})".format(str(clean)))
-        
+
         # Interpolate/inpaint to remove NaNs - used to be an if statement, with
         # NaN values turned to zero otherwise so there was no interpolation.
         print("Interpolating over NaNs.")
@@ -446,20 +449,20 @@ def dose_data(project, data, shot, layers, OD=False, scanner=None,
         layer_dose_err_nan[layer_dose_err_clean==0] = np.nan
 
         t0 = time.time()
-        
+
         # Originally there was a seperate method for the cleaning treatment which
         # used the clean array as an input. However, this does not include NaNs that
         # arise in dose error calculation!
         # if clean:
         #     layer_dose_interp = interp_nan_2D(layer_dose_nan, layer_clean, plot=plot)
         #     layer_dose_err_interp = interp_nan_2D(layer_dose_err_nan, layer_clean, plot=False)
-    
+
         # If interpolating NaNs but not cleaning. Orignal method returned
         # False wherever a NaN occurs in any layer, but this applied to all
         # channels (which I don't want if the calibration curve fit is bad.
         layer_dose_interp = interp_nan_2D(layer_dose_nan, None, plot=plot)
         layer_dose_err_interp = interp_nan_2D(layer_dose_err_nan, None, plot=False)
-        
+
         # Flag in case interpolation causes values to exceed maximum possible range.
         # This was used where the array was cleaned before dosing. 
         # if ((OD and (((np.amax(layer_RGB_interp, axis=(0,1)) - np.log10(null_ave/1))>0).any() or 
