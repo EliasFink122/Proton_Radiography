@@ -48,6 +48,7 @@ if os.path.split(os.getcwd())[1] != "Proton_Radiography":
     sys.path.insert(1, rootdir)
 else:
     sys.path.insert(1, rootdir + '/Codes/Python_Scripts')
+import RCF_Image_Crop as ic
 import Physics_Constants as pc
 import Plot_Master as pm
 
@@ -639,7 +640,7 @@ def crop_data(data, corners_diag=None, edge=250, shape="rectangle", corners_setu
     return data_crop
 
 
-def rotate_crop_data(data, project, shot, layers, edge=250, rot=False, 
+def rotate_crop_data(data, project, shot, layers, edge=250, rot=False,
                      shape="rectangle", plot=False):
     '''
     Function for handling rotating and then cropping RCF data.
@@ -671,6 +672,17 @@ def rotate_crop_data(data, project, shot, layers, edge=250, rot=False,
 
     return data_list[-1]
 
+def better_crop_rot(path: str) -> list[np.ndarray]:
+    '''
+    More automated version of rotate_crop_data function
+
+    Args:
+        path: path to image of all stack layers
+
+    Returns:
+        list of all layers in order
+    '''
+    return ic.crop_rot(path)
 
 def get_rotate_crop_data(project, shot, stack, layers, location=False, dtype=".tif",
                          suffix=None, edge=250, shape="rectangle", plot=False):
@@ -679,10 +691,10 @@ def get_rotate_crop_data(project, shot, stack, layers, location=False, dtype=".t
     Returns a list.
     '''
 
-    data = get_stack_data(project, shot, stack, layers, location=location, 
+    data = get_stack_data(project, shot, stack, layers, location=location,
                           dtype=dtype, suffix=suffix, plot=plot)
 
-    data = rotate_crop_data(data, project, shot, layers, edge=edge, shape=shape, 
+    data = rotate_crop_data(data, project, shot, layers, edge=edge, shape=shape,
                             plot=plot)
 
     return data

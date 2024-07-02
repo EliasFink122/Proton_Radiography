@@ -67,7 +67,8 @@ def find_bound_points(data_x, data_y, x, x_dev, y, y_dev, sigma, active=True):
 
     if active:
         # Find points in XY plane bounded by X deviation
-        XY_pathX = np.concatenate((np.array([x-sigma*x_dev, y]), np.array([x+sigma*x_dev, y])[:,::-1]), axis=1)
+        XY_pathX = np.concatenate((np.array([x-sigma*x_dev, y]),
+                                   np.array([x+sigma*x_dev, y])[:,::-1]), axis=1)
         XY_pathX = XY_pathX.T
 
         XY_boundX = path.Path(XY_pathX)
@@ -76,7 +77,8 @@ def find_bound_points(data_x, data_y, x, x_dev, y, y_dev, sigma, active=True):
         XY_pointsX = XY_pointsX.reshape(ny,nx)
 
         # Find points in XY plane bounded by Y deviation
-        XY_pathY = np.concatenate((np.array([x, y-sigma*y_dev]), np.array([x, y+sigma*y_dev])[:,::-1]), axis=1)
+        XY_pathY = np.concatenate((np.array([x, y-sigma*y_dev]),
+                                   np.array([x, y+sigma*y_dev])[:,::-1]), axis=1)
         XY_pathY = XY_pathY.T
 
         XY_boundY = path.Path(XY_pathY)
@@ -242,7 +244,7 @@ def interp_nan_2D(data, input_valid=None, interpolator="nearest", plot=False):
 
             # Check how many NaNs exist
             nan_frac = array_nan.sum()/(nx*ny)
-            print("C{}: {:.3f} % NaN.".format(c+1, nan_frac*100))
+            print(f"C{c+1}: {nan_frac*100:.3f} % NaN.")
             if nan_frac > 0.01:
                 print("Caution: Image has more than 1% NaN values.")
 
@@ -474,7 +476,7 @@ def dose_data(project, data, shot, layers, OD=False, scanner=None,
         #     raise Exception("Interpolation has caused values to exceed maximum range.")
 
         t1 = time.time()
-        
+
         print(f"The elapsed interpolating time for this layer was {t1-t0:.2f}.")
 
         data_dose.append(layer_dose_interp)
@@ -493,13 +495,13 @@ def combine_dose(dose, error, channels=[1,1,1], plot=True):
         should be combined to form the final piece of data, weighted by their
         errors.
     '''
-    
+
     layers = len(dose)
-    
+
     # List for storing data
     dose_combined = []
     error_combined = []
-    
+
     # Indexes of selected colour channels
     channel_index = []
     for c in range(3):
@@ -509,14 +511,14 @@ def combine_dose(dose, error, channels=[1,1,1], plot=True):
     for layer in range(layers):
         if np.amin(error[layer]) == 0:
             raise Exception("Error in dose should not be zero. Exiting.")
-            
+
         # error = 1 / sqrt(sum(errors^-2))
         layer_error = error[layer][:,:,channel_index] # Slice out layers which are to be merged
         layer_error = np.power(layer_error, -2)
         layer_error = np.sum(layer_error, axis=2)
         layer_error = np.power(layer_error, -0.5)
 
-        
+
         # dose = sum(doses/errors^2)*error^2
         layer_dose = dose[layer][:,:,channel_index]
         layer_dose = layer_dose / np.power(error[layer][:,:,channel_index], 2)
@@ -576,16 +578,15 @@ def get_dose_data(project, shot, stack, layers, suffix=None, edge=0, shape="squa
 
     return data_dose_comb, data_error_comb
 
-def new_get_dose_data(path) -> tuple[list[np.ndarray], list[np.ndarray]]:
+def better_get_dose_data(project: str, shot: str):
     '''
-    Gets raw image and converts to single images with doses
+    Improvement of get_dose_data.
 
     Args:
-        path: path to raw image
-
-    Returns:
-        list of doses and errors
+        project: project name
+        shot: number of shot in xxx number format (e.g. 012)
     '''
+    pass
 
 
 
@@ -601,7 +602,7 @@ def plot_clean(data, points, R_val, R_dev, G_val, G_dev, B_val, B_dev, sigma,
     '''
 
     import matplotlib.colors
-   
+
     colours = ["Red", "Green", "Blue"]
 
     # Separate colour channels
@@ -693,7 +694,7 @@ def plot_clean(data, points, R_val, R_dev, G_val, G_dev, B_val, B_dev, sigma,
             axi.set_xlim(xmin=0, xmax=2.5)
             axi.set_ylim(ymin=0, ymax=2.5)
         else:
-            axi.set_xlabel("{} channel (16-bit)".format(colours[n]))
+            axi.set_xlabel(f"{colours[n]} channel (16-bit)")
         if not OD and scale == "log":
             axi.set_xscale("log")
             axi.set_yscale("log")
@@ -703,7 +704,7 @@ def plot_clean(data, points, R_val, R_dev, G_val, G_dev, B_val, B_dev, sigma,
     if OD:
         ax[0].set_ylabel("OD")
     else:
-        ax[0].set_ylabel("{} channel (16-bit)".format(colours[1]))
+        ax[0].set_ylabel(f"{colours[1]} channel (16-bit)")
     fig.subplots_adjust(wspace=0, hspace=0)
 
     fig.tight_layout()
@@ -736,8 +737,8 @@ def plot_clean(data, points, R_val, R_dev, G_val, G_dev, B_val, B_dev, sigma,
         if GB_path[0] is not None:
             ax_res[0].plot(GB_pathG[0,:], GB_pathG[1,:], color="g")
             ax_res[0].plot(GB_pathB[0,:], GB_pathB[1,:], color="b")
-            ax_res[0].set_xlabel("{} channel (16-bit)".format("Green"))
-            ax_res[0].set_ylabel("{} channel (16-bit)".format("Blue"))
+            ax_res[0].set_xlabel("Green channel (16-bit)")
+            ax_res[0].set_ylabel("Blue channel (16-bit)")
             if not OD and scale == "log":
                 ax_res[0].set_xscale("log")
                 ax_res[0].set_yscale("log")
