@@ -16,9 +16,11 @@ def import_tif() -> np.ndarray:
     Returns:
         numpy array of pixel rgb values with higher contrast
     """
+    # import image
     imge = Image.open('sh1_st1.tif')
     imarray = np.array(imge)
 
+    # increase contrast in the image
     for k, row in enumerate(imarray):
         for j, pixel in enumerate(row):
             if np.mean(pixel) > 180:
@@ -35,6 +37,7 @@ def slice_image(img: np.ndarray) -> list[np.ndarray]:
     Returns:
         array of sections in order of stack
     """
+    # slice horizontally
     slices_x = []
     starts = []
     ends = []
@@ -47,6 +50,7 @@ def slice_image(img: np.ndarray) -> list[np.ndarray]:
         if ends[k] - start > 100:
             slices_x.append(img[start:ends[k]])
 
+    # slice vertically
     imgs_sliced = []
     for slice_x in slices_x:
         slice_x = np.transpose(slice_x, (1, 0, 2))
@@ -61,6 +65,7 @@ def slice_image(img: np.ndarray) -> list[np.ndarray]:
             if ends[k] - start > 100:
                 imgs_sliced.append(slice_x[start:ends[k]].transpose(1, 0, 2))
 
+    # clean up slices horizontally
     for k, img_sliced in enumerate(imgs_sliced):
         start = 0
         end = len(img_sliced) - 1
@@ -85,6 +90,7 @@ def rotate(imgs: list[np.ndarray]) -> list[np.ndarray]:
     """
     imgs_rotated = []
     for img in imgs:
+        # find one edge
         edge_x = np.array([])
         edge_y = np.array([])
         for k, row in enumerate(img):
@@ -104,6 +110,7 @@ def rotate(imgs: list[np.ndarray]) -> list[np.ndarray]:
         p2 = np.array([edge_x[int(0.9 * len(edge_x))],
                        edge_y[int(0.9 * len(edge_y))]])
 
+        # rotate image to make orientation of edge straight
         theta = np.arctan((p2[0] - p1[0])/(p2[1] - p1[1]))
 
         rotation_matrix = np.array([[np.cos(theta), -np.sin(theta)],
@@ -123,6 +130,7 @@ def rotate(imgs: list[np.ndarray]) -> list[np.ndarray]:
                     except IndexError:
                         continue
 
+        # clean up white space on rotated image
         start = 0
         end = len(new_img) - 1
         for j, row in enumerate(new_img):
