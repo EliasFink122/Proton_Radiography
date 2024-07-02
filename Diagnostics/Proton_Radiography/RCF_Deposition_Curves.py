@@ -25,12 +25,11 @@ from plasmapy.diagnostics.charged_particle_radiography.detector_stacks import (
 
 import RCF_Basic as rcf
 
-sys.path.insert(1, '../../Codes/Python_Scripts/')
+rootdir = r"/Users/eliasfink/Desktop/Proton_Radiography"
+sys.path.insert(1, rootdir + '/Codes/Python_Scripts/')
+
 import Physics_Constants as pc
 import Plot_Master as pm
-
-# Path to main directory (only needed if code is not being run in the main folder)
-rootdir = r"C:\Users\benny\Desktop\Proton_Radiography_Tool\Diagnostics\Proton_Radiography"
 
 
 #%% Functions
@@ -41,19 +40,19 @@ def get_mass_stopping_power(material, database="SRIM"):
     # so I will convert SRIM data (which is in MeV/(mg/cm2)) here for simplicity.
     # Additionally, SRIM outputs electronic and nuclear stopping power separtely.
     # PlasmaPy wants the total stopping power, so we will combine here.
-    
+
     owd = os.getcwd()
-    
+
     os.chdir(rootdir)
-    os.chdir("Stopping_Power")
-    
+    os.chdir("Diagnostics/Proton_Radiography/Stopping_Power")
+
     file = database + "_" + material + ".txt"
     if file not in os.listdir():
-        raise FileNotFoundError("{} is not in the Stopping_Power directory.".format(file))
-    
+        raise FileNotFoundError(f"{file} is not in the Stopping_Power directory.")
+
     if database == "PSTAR":
         data = np.loadtxt(file, skiprows=8)
-        
+
     elif database == "SRIM": # Have to manually handle formatting
         with open(file) as f:
             data_raw = f.readlines()
@@ -65,7 +64,7 @@ def get_mass_stopping_power(material, database="SRIM"):
                 row_start = data_raw.index('  ---' + str_start)
             row_end = data_raw.index(str_end)
             data_raw = data_raw[row_start+1:row_end]
-            
+
             # Format data into array
             data = np.zeros((len(data_raw),2))
             i = 0
@@ -78,11 +77,11 @@ def get_mass_stopping_power(material, database="SRIM"):
                     data[i,0] = float(row_split[0])
                 data[i,1] = float(row_split[2]) + float(row_split[3])
                 i+=1
-                
+
         data[:,1] = data[:,1]*1000 # Convert to g/cm2
-        
+
     os.chdir(owd)
-    
+
     return data
 
 
@@ -92,39 +91,39 @@ def get_target_density(material, database="SRIM"):
     
     Currently this is only available in SRIM files?
     '''
-    
+
     owd = os.getcwd()
-    
+
     os.chdir(rootdir)
-    os.chdir("Stopping_Power")
-    
+    os.chdir("Diagnostics/Proton_Radiography/Stopping_Power")
+
     file = database + "_" + material + ".txt"
     if file not in os.listdir():
-        raise FileNotFoundError("{} is not in the Stopping_Power directory.".format(file))
-    
+        raise FileNotFoundError(f"{file} is not in the Stopping_Power directory.")
+
     if database == "PSTAR":
         raise Exception("PSTAR files do not contain target density.")
-        
+
     elif database == "SRIM": # Have to manually handle formatting
         with open(file) as f:
             for row in f.readlines():
                 if "Target Density" in row:
                     target_density = float(row.split()[3])
                     break
-                
+
     os.chdir(owd)
-    
+
     return target_density
 
 
 def linear_stopping_power(material):
     '''Get the linear stopping power, as SRIM/PSTAR data is for mass stopping power'''
-    
+
     density = get_target_density(material) * u.g / u.cm**3
     stopping_mass = get_mass_stopping_power(material)
     stopping_power = stopping_mass[:,1] * u.MeV * u.cm**2 / u.g * density # Convert stopping power to astropy units
     stopping_energy = stopping_mass[:,0] * u.MeV # Convert corresponding energy to astropy units
-    
+
     return stopping_energy, stopping_power
 
 
@@ -134,10 +133,10 @@ def layer_EBT3():
     
     Consists of "Polyester_Substrate" and "EBT2_Active_Layer"
     '''
-    
+
     active_layer = "EBT2_Active_Layer"
     substrate ="Polyester_Substrate"
-    
+
     act_stopping_energy_power = linear_stopping_power(active_layer)
     sub_stopping_energy_power = linear_stopping_power(substrate)
 
@@ -146,7 +145,7 @@ def layer_EBT3():
         Layer(28 * u.um, *act_stopping_energy_power, active=True),
         Layer(125 * u.um, *sub_stopping_energy_power, active=False),
     ]
-    
+
     return EBT3
 
 def layer_HDV2():
@@ -155,10 +154,10 @@ def layer_HDV2():
     
     Consists of "Polyester_Substrate" and "HDV2_Active_Layer"
     '''
-    
+
     active_layer = "HDV2_Active_Layer"
     substrate ="Polyester_Substrate"
-    
+
     act_stopping_energy_power = linear_stopping_power(active_layer)
     sub_stopping_energy_power = linear_stopping_power(substrate)
 
@@ -166,7 +165,7 @@ def layer_HDV2():
         Layer(12 * u.um, *act_stopping_energy_power, active=True),
         Layer(97 * u.um, *sub_stopping_energy_power, active=False),
     ]
-    
+
     return HDV2
 
 
@@ -179,8 +178,8 @@ def build_layers(input_layers=None, project=None, shot=None, design=None):
         material and its thickness. Multiple filters can be listed for a single layer
         by placing a "/" between the material and its thickness.
     '''
-    
-    if input_layers is not None: 
+
+    if input_layers is not None:
         print("Building stack with the following layers:")
         print(input_layers)
         stack_material = input_layers[0]
@@ -192,15 +191,15 @@ def build_layers(input_layers=None, project=None, shot=None, design=None):
                                              info="filters")
     else:
         raise Exception("Either layers or project must be input.")
-      
+
     layers = []
-    
+
     # The first layer of the stack should be a filter
-    for i in range(len(stack_material)):
+    for i, _ in enumerate(stack_material):
         if stack_material[i] is np.nan:
-            print("{} RCF layers in stack.".format(i+1))
+            print(f"{i+1} RCF layers in stack.")
             break
-        
+
         if stack_filters[0][i].count("/")>0: # Are multiple filters listed
             n_filters = stack_filters[0][i].count("/")+1
             layer_filters = stack_filters[0][i].split("/")
@@ -210,19 +209,19 @@ def build_layers(input_layers=None, project=None, shot=None, design=None):
         else:
             layers.append([stack_filters[0][i], stack_filters[1][i]])
         layers.append([stack_material[i]])
-    
+
     return layers
 
 
 def build_stack(input_layers=None, project=None, shot=None, design=None):
     '''Build and RCF stack with a given design.'''
-    
+
     layers = build_layers(input_layers=input_layers, project=project, shot=shot, 
                           design=design) # Returns a list containg the stack specs.
     # print(layers)
-    
+
     stack_layers = [] # The "layers" list formatted so that the stack class can be constructed.
-    
+
     for layer in layers:
         if layer[0] == "EBT3":
             stack_layers.extend(layer_EBT3())
@@ -235,13 +234,13 @@ def build_stack(input_layers=None, project=None, shot=None, design=None):
 
             stack_layers.append(Layer(int(layer[1])*u.um, *layer_stopping_energy_power,
                                       active=False))
-            
+
     stack = Stack(stack_layers)
-        
+
     print(f"Number of layers: {stack.num_layers}")
     print(f"Number of active layers: {stack.num_active}")
     print(f"Total stack thickness: {stack.thickness:.2f}")
-    
+
     return stack
 
 
@@ -255,29 +254,29 @@ def calc_energy_bands(energy, deposition, normalise, mode="frac-max", frac=1/np.
         corresponds to the region in which half of the energy is contained around 
         the maximum.
     '''
-    
+
     energy_bands = np.zeros([deposition.shape[0], 2])
-    
+
     bragg_peak = energy[np.argmax(deposition, axis=1)]
-    
+
     if mode == "half-energy" and normalise == True:
         print("Data must be un-normalised to obtain half-energy bands. Reverting to half-max.")
         mode = "half-max"
-    
+
     for i in range(deposition.shape[0]):
-        
+
         if mode == "frac-max":
             bragg_curve = deposition[i, :]
-    
+
             # Find the indices corresponding to half the maximum value
             # on either side of the peak
             fracmax = np.max(bragg_curve) * frac
-            
+
             assert fracmax > 0, "Energy range is not suitable to obtain high energy deposition curves."
-    
+
             inds = np.argwhere(bragg_curve > fracmax)
             # Store those energies
-    
+
             energy_bands[i, 0] = energy[inds[0][0]]
             energy_bands[i, 1] = energy[inds[-1][0]]
 
@@ -285,10 +284,10 @@ def calc_energy_bands(energy, deposition, normalise, mode="frac-max", frac=1/np.
             deposition_tot = np.sum(deposition[i,:])
             deposition_cum = np.cumsum(deposition[i,:])
             deposition_frac = deposition_cum/deposition_tot
-            
+
             energy_bands[i, 0] = energy[np.nonzero(deposition[i,:])[0][0]]
             energy_bands[i, 1] = energy[np.argmin(abs(deposition_frac-frac))]
-           
+
             if test:
                 fig, ax = pm.plot_figure_axis()
                 ax.plot(energy, deposition_frac)
@@ -333,7 +332,7 @@ def get_deposition_curves(energy_range_MeV=[1,40], input_layers=None, project=No
 
     stack = build_stack(input_layers=input_layers, project=project, shot=shot,
                         design=design)
-    
+
     energy = np.arange(*energy_range_MeV, dE) * u.MeV
 
     # Try/except in case modified plasmapy version is not used.
@@ -346,7 +345,7 @@ def get_deposition_curves(energy_range_MeV=[1,40], input_layers=None, project=No
         deposition_curves = stack.deposition_curves(energy, dx=dx * u.um, 
                                                     return_only_active=return_active)
         normalise = True
-        
+
     energy = energy.value
 
     if plot:
@@ -355,16 +354,16 @@ def get_deposition_curves(energy_range_MeV=[1,40], input_layers=None, project=No
         #                             return_only_active=return_active)
         ebands = calc_energy_bands(energy, deposition_curves, normalise,
                                    frac=1/np.e, output=output_eband)
-        
+
         if input_layers is None:
             rcf_material = rcf.get_stack_design(project, shot=shot, design=design,
                                                 info="material")
         else:
             rcf_material = input_layers[0]
-        
+
         plot_deposition_curves(stack, energy, deposition_curves, rcf_material=rcf_material,
                                ebands=ebands, normalise=normalise)
-    
+
     return deposition_curves, energy
 
 
@@ -372,12 +371,12 @@ def get_deposition_curves(energy_range_MeV=[1,40], input_layers=None, project=No
 
 def plot_stopping_power(materials, nplot=1):
     '''Plot the stopping power as a function of proton energy.'''
-    
+
     if isinstance(materials, str):
         materials = [materials]
     elif not isinstance(materials, list):
-        raise Exception("Materials should be either desired string or list.")        
-    
+        raise RuntimeError("Materials should be either desired string or list.")        
+
     fig, ax = pm.plot_figure_axis("small", nplot)
     if nplot == 1:
         ax_SP = ax
@@ -385,7 +384,7 @@ def plot_stopping_power(materials, nplot=1):
     else:
         ax_SP = ax[0]
         ax_SPrho = ax[1]
-    
+
     for material in materials:
         stopping_power = get_mass_stopping_power(material)
         target_density = get_target_density(material) * u.g / u.cm**3
@@ -393,7 +392,7 @@ def plot_stopping_power(materials, nplot=1):
         ax_SP.plot(stopping_power[:,0], stopping_power[:,1], label=material)
         if nplot != 1:
             ax_SPrho.plot(stopping_power[:,0], stopping_power[:,1] * u.MeV * u.cm**2 / u.g * target_density, label=material)
-        
+
     ax_SP.set_ylabel(r"Stopping Power (MeV cm$^2$ g$^{-1}$)")
     if nplot != 1:
         ax_SPrho.set_ylabel(r"Stopping Power (MeV cm$^{-1}$)")
@@ -403,16 +402,16 @@ def plot_stopping_power(materials, nplot=1):
         axi.set_xscale("log")
         axi.set_xlim(xmin=1e-2)
     ax[-1].legend()
-    
+
     fig.tight_layout()
-    
+
     return
 
 
 def plot_deposition_curves(stack, energy, deposition_curves, rcf_material=None,
                            ebands=None, normalise=True):
     '''Plot deposition curves'''
-    
+
     fig, ax = pm.plot_figure_axis("small", 1, ratio=[1,1])
 
     if not normalise:
@@ -424,13 +423,13 @@ def plot_deposition_curves(stack, energy, deposition_curves, rcf_material=None,
     for layer in range(stack.num_active):
         label = f"Layer {layer+1}"
         if rcf_material is not None:
-            label = label + " ({})".format(rcf_material[layer])
-            
+            label = label + f" ({rcf_material[layer]})"
+
         ax.plot(energy, deposition_curves[layer, :], label=label)
 
         if ebands is not None:
             ax.fill_betweenx([0,plot_max], ebands[layer,0], ebands[layer,1], alpha=0.25)
-        
+
     # ax.set_title("Energy deposition curves")
     ax.set_xlabel("$E_\mathrm{k}$ (MeV)")
     if normalise:
@@ -447,20 +446,20 @@ def plot_deposition_curves(stack, energy, deposition_curves, rcf_material=None,
 
 #%%  Main script
 if __name__ == "__main__":
-    
+
     project = "Carroll_2020"
     design = "A"
-    
+
     # project = "Woolsey_2019"
     # design = "C"
-    
+
     if 0:
         stack = build_stack(project=project, design=design)
-    
+
     if 1:
-        deposition_curves, energy = get_deposition_curves(energy_range_MeV=[1,120], project=project, design=design, 
-                                                          normalise=False, dE=0.625, dx=0.25, output_eband=True)    
-        
+        deposition_curves, energy = get_deposition_curves(energy_range_MeV=[1,120], project=project, design=design,
+                                                          normalise=False, dE=0.625, dx=0.25, output_eband=True)
+
     if 0:
         plot_stopping_power(["Al", "Fe", "Mylar"], nplot=1)
 

@@ -193,4 +193,4 @@ if __name__ == "__main__":
     for i, img_smoothed in enumerate(images_smoothed):
         im = Image.fromarray(img_smoothed.astype(np.uint8))
         im.show()
-        im.save(f'Output/stack_image_{i+1}.tif')
+        im.save(f'Cropped_Rotated_Images/stack_image_{i+1}.tif')

@@ -31,7 +31,7 @@ I have started to implement this change now.
 # Path settings
 
 # Path to main directory (only needed if code is not being run in the main folder)
-rootdir = r"/Users/eliasfink/Desktop/Proton radiography"
+rootdir = r"/Users/eliasfink/Desktop/Proton_Radiography"
 
 
 # %% Libraries
@@ -47,7 +47,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 if os.path.split(os.getcwd())[1] != "Proton_Radiography":
     sys.path.insert(1, rootdir)
 else:
-    sys.path.insert(1, '../../Codes/Python_Scripts')
+    sys.path.insert(1, rootdir + '/Codes/Python_Scripts')
 import Physics_Constants as pc
 import Plot_Master as pm
 
@@ -86,10 +86,10 @@ def get_radiography_data(project, shot, file, colour=None, location=None,
     # Load data from experiment directories
     elif location is not None:
         print(f"Entering {location} directory.")
-        os.chdir("../../Projects/" + project + "/Experiment_Data/Proton_Radiography/" + location)
+        os.chdir(rootdir + "/Projects/" + project + "/Experiment_Data/Proton_Radiography/" + location)
 
     else:
-        os.chdir("../../Projects/" + project + "/Experiment_Data/Proton_Radiography")
+        os.chdir(rootdir + "/Projects/" + project + "/Experiment_Data/Proton_Radiography")
 
         if shot == "Null":
             os.chdir("Null")
@@ -203,11 +203,11 @@ def save_radiography_data(data, stack, layers, project=None, shot=None,
     # directory = owd
 
     if project is not None: # Print to current directory otherwise
-        # Change the current directory to specified directory 
+        # Change the current directory to specified directory
         if shot is None:
-            tardir = "../../Projects/"+project+"/Experiment_Data/Proton_Radiography"
+            tardir = rootdir+"/Projects/"+project+"/Experiment_Data/Proton_Radiography"
         else:
-            tardir = "../../Projects/"+project+"/Experiment_Data/Proton_Radiography/Shot"+shot 
+            tardir = rootdir+"/Projects/"+project+"/Experiment_Data/Proton_Radiography/Shot"+shot
         os.chdir(tardir)
 
     # List files and directories in target directory
@@ -286,13 +286,13 @@ def get_stack_type(project, shot):
 
     shot = int(shot)
 
-    # owd = os.getcwd()
+    owd = os.getcwd()
 
-    # os.chdir("../../Projects/" + project + "/Experiment_Data/Proton_Radiography")
+    os.chdir(rootdir + "/Projects/" + project + "/Experiment_Data/Proton_Radiography")
 
     data = pd.read_csv('RCF_Stack_Type.csv')
 
-    # os.chdir(owd)
+    os.chdir(owd)
 
     data = data.values.tolist()[shot-1] # -1 because shot 1 is row 0
 
@@ -315,15 +315,15 @@ def get_stack_design(project, shot=None, design=None, info="all"):
     Either requires shot number or design letter.
     '''
 
-    # owd = os.getcwd()
+    owd = os.getcwd()
 
-    # os.chdir(rootdir)
+    os.chdir(rootdir)
 
-    # os.chdir("../../Projects/" + project + "/Experiment_Data/Proton_Radiography")
+    os.chdir(rootdir + "/Projects/" + project + "/Experiment_Data/Proton_Radiography")
 
     data = pd.read_csv('RCF_Stack_Design.csv')
 
-    # os.chdir(owd)
+    os.chdir(owd)
 
     if shot is not None:
         design = get_stack_type(project, shot)
@@ -393,7 +393,7 @@ def get_corners(project, shot, layers, shape="rectangle"):
 
     owd = os.getcwd()
 
-    os.chdir("../../Projects/" + project + "/Experiment_Data/Proton_Radiography")
+    os.chdir(rootdir + "/Projects/" + project + "/Experiment_Data/Proton_Radiography")
 
     # Get corners of all available layers
     if shape == "square":
@@ -926,4 +926,3 @@ if __name__ == "__main__":
         save_radiography_data(RCF_data, stack, layers, info="colour")
 
 plt.show()
-            
