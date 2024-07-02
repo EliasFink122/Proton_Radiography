@@ -53,9 +53,9 @@ def slice_image(img: np.ndarray) -> list[np.ndarray]:
         starts = []
         ends = []
         for i, row in enumerate(slice_x):
-            if np.mean(row) <= 250 and np.mean(slice_x[i-1]) > 250:
+            if np.mean(row) <= 254 and np.mean(slice_x[i-1]) > 254:
                 starts.append(i)
-            elif np.mean(row) > 250 and np.mean(slice_x[i-1]) <= 250:
+            elif np.mean(row) > 254 and np.mean(slice_x[i-1]) <= 254:
                 ends.append(i)
         for i, start in enumerate(starts):
             if ends[i] - start > 100:
@@ -65,9 +65,9 @@ def slice_image(img: np.ndarray) -> list[np.ndarray]:
         start = 0
         end = len(img_sliced) - 1
         for j, row in enumerate(img_sliced):
-            if np.mean(row) <= 250 and np.mean(img_sliced[j-1]) > 250:
+            if np.mean(row) <= 254 and np.mean(img_sliced[j-1]) > 254:
                 start = j
-            elif np.mean(row) > 250 and np.mean(img_sliced[j-1]) <= 250 and j != 0:
+            elif np.mean(row) > 254 and np.mean(img_sliced[j-1]) <= 254 and j != 0:
                 end = j
                 break
         imgs_sliced[i] = img_sliced[start:end]
@@ -85,32 +85,41 @@ def rotate(imgs: list[np.ndarray]) -> list[np.ndarray]:
     """
     imgs_rotated = []
     for img in imgs:
-        img_avg = 255 - np.mean(img, 2)
-        x = np.arange(0, len(img_avg[0]), 1)
-        y = np.arange(0, len(img_avg.transpose(1, 0)[0]), 1)
-        x_top = int(np.dot(x, img_avg[0])/np.sum(img_avg[0]))
-        y_left = int(np.dot(y, img_avg.transpose(1, 0)[0])/np.sum(img_avg.transpose(1, 0)[0]))
-        theta = np.arctan(y_left/x_top)/4
-        if theta > 0.1:
-            imgs_rotated.append(img)
-            continue
-
-        rotation_matrix = np.array([[np.cos(theta), -np.sin(theta)],
-                                    [np.sin(theta), np.cos(theta)]])
-        new_img = np.full(np.shape(img), 255)
+        edge_x = np.array([])
+        edge_y = np.array([])
         for i, row in enumerate(img):
             for j, pixel in enumerate(row):
-                if np.mean(pixel) != 255:
-                    old_xy = np.array([j - len(img[0])/2, i - len(img)/2])
-                    new_xy = np.dot(rotation_matrix, old_xy)
-                    try:
-                        new_j = int(new_xy[0] + len(row)/2)
-                        new_i = int(new_xy[1] + len(img)/2)
-                        if new_j < 0 or new_i < 0:
-                            continue
-                        new_img[new_i, new_j] = pixel
-                    except IndexError:
-                        continue
+                if np.mean(pixel) <= 200:
+                    edge_x = np.append(edge_x, j)
+                    edge_y = np.append(edge_y, i)
+                    break
+
+        for i, p_x in enumerate(edge_x):
+            if np.abs(p_x - edge_x[i]) >= 5:
+                edge_x = edge_x[i:]
+                edge_y = edge_y[i:]
+
+        # theta = np.arctan(y_left/x_top)
+
+        new_img = img
+        for i, p_x in enumerate(edge_x):
+            new_img[int(edge_y[i]), int(p_x)] = [255, 0, 0]
+        # rotation_matrix = np.array([[np.cos(theta), -np.sin(theta)],
+        #                             [np.sin(theta), np.cos(theta)]])
+        # new_img = np.full(np.shape(img), 255)
+        # for i, row in enumerate(img):
+        #     for j, pixel in enumerate(row):
+        #         if np.mean(pixel) != 255:
+        #             old_xy = np.array([j - len(img[0])/2, i - len(img)/2])
+        #             new_xy = np.dot(rotation_matrix, old_xy)
+        #             try:
+        #                 new_j = int(new_xy[0] + len(row)/2)
+        #                 new_i = int(new_xy[1] + len(img)/2)
+        #                 if new_j < 0 or new_i < 0:
+        #                     continue
+        #                 new_img[new_i, new_j] = pixel
+        #             except IndexError:
+        #                 continue
         imgs_rotated.append(new_img)
 
     return imgs_rotated
