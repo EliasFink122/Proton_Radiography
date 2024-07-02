@@ -9,7 +9,7 @@ Cropping and rotating RCF stack images from initial scan
 import numpy as np
 from PIL import Image
 
-def import_tif() -> np.ndarray:
+def import_tif(path = 'sh1_st1.tif') -> np.ndarray:
     """
     Import tif image
 
@@ -17,7 +17,7 @@ def import_tif() -> np.ndarray:
         numpy array of pixel rgb values with higher contrast
     """
     # import image
-    imge = Image.open('sh1_st1.tif')
+    imge = Image.open(path)
     imarray = np.array(imge)
 
     # increase contrast in the image
@@ -179,6 +179,22 @@ def smooth(imgs: list[np.ndarray]) -> list[np.ndarray]:
                     new_img[k][j] = np.mean(neighbours, 0)
         imgs_smoothed.append(new_img)
     return imgs_smoothed
+
+def crop_rot(path: str) -> list[np.ndarray]:
+    """
+    Crop and rotate image properly
+    
+    Args:
+        path: fullpath to image
+
+    Returns:
+        list of cropped, rotated and smoothed images as numpy arrays
+    """
+    all_image = import_tif(path)
+    all_images_sliced = slice_image(all_image)
+    all_images_rotated = rotate(all_images_sliced)
+    all_images_smoothed = smooth(all_images_rotated)
+    return all_images_smoothed
 
 if __name__ == "__main__":
     print("Importing image...")

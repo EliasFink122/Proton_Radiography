@@ -190,13 +190,13 @@ def build_layers(input_layers=None, project=None, shot=None, design=None):
         stack_filters = rcf.get_stack_design(project, shot=shot, design=design,
                                              info="filters")
     else:
-        raise Exception("Either layers or project must be input.")
+        raise RuntimeError("Either layers or project must be input.")
 
     layers = []
 
     # The first layer of the stack should be a filter
-    for i, _ in enumerate(stack_material):
-        if stack_material[i] is np.nan:
+    for i, material in enumerate(stack_material):
+        if material is np.nan:
             print(f"{i+1} RCF layers in stack.")
             break
 
@@ -208,7 +208,7 @@ def build_layers(input_layers=None, project=None, shot=None, design=None):
                 layers.append([layer_filters[j], layer_filters_thickness[j]])
         else:
             layers.append([stack_filters[0][i], stack_filters[1][i]])
-        layers.append([stack_material[i]])
+        layers.append([material])
 
     return layers
 
@@ -302,7 +302,7 @@ def calc_energy_bands(energy, deposition, normalise, mode="frac-max", frac=1/np.
             print("------")
             print(f"Layer {i+1} ({mode}):")
             print(f"Bragg peak = {bragg_peak[i]:.1f} MeV")
-            print(f"Energy band = {energy_bands[i,0]:.1f}-{energy_bands[i,1]:.1f} MeV") 
+            print(f"Energy band = {energy_bands[i,0]:.1f}-{energy_bands[i,1]:.1f} MeV")
             print(f"Energy spread = {energy_spread[i]:.1%} %")
         print("------")
 

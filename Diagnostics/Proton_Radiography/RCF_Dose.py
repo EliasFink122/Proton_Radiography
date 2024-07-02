@@ -44,6 +44,7 @@ import matplotlib.pyplot as plt
 import matplotlib.path as path
 
 import RCF_Basic as rcf
+import RCF_Image_Crop as ic
 from RCF_Calibration_Curves import get_calibration, make_calibration_range_same
 from RCF_Calibration_Curves import convert_intensity_OD_RGB
 
@@ -305,10 +306,10 @@ def convert_dose(data, material, OD=False, scanner=None, material_type=None,
         # if fill is None:
         #     fill_lower = np.NaN
         #     fill_upper = np.NaN
-        if fill == None: # Was previously "min_max"
+        if fill is None: # Was previously "min_max"
             # fill_lower = None
             # fill_upper = None
-            raise Exception("Warning: This will result in errors equal to zero.")
+            raise ValueError("Warning: This will result in errors equal to zero.")
             # Need to either multiply lower/upper min/max values of dose by some number
             # or interpolate over zeros at a later state?
 
@@ -347,8 +348,10 @@ def convert_dose(data, material, OD=False, scanner=None, material_type=None,
                 ax[c+i*3].fill_between(xy[i], np.average(data_dose[:,:,c], axis=1-i)-np.average(data_dose_err[:,:,c], axis=1-i),
                                    np.average(data_dose[:,:,c], axis=1-i)+np.average(data_dose_err[:,:,c], axis=1-i),
                                    alpha=0.25)
-                ax[c+i*3].plot(xy[i], np.average(data_dose_sub_dev[:,:,c], axis=1-i), label=r"$\langle D - \sigma \rangle$")
-                ax[c+i*3].plot(xy[i], np.average(data_dose_add_dev[:,:,c], axis=1-i), label=r"$\langle D + \sigma \rangle$")
+                ax[c+i*3].plot(xy[i], np.average(data_dose_sub_dev[:,:,c], axis=1-i),
+                               label=r"$\langle D - \sigma \rangle$")
+                ax[c+i*3].plot(xy[i], np.average(data_dose_add_dev[:,:,c], axis=1-i),
+                               label=r"$\langle D + \sigma \rangle$")
         ax[0].set_ylabel("Dose (Gy)")
         ax[3].set_ylabel("Dose (Gy)")
         ax[2].legend()
@@ -394,7 +397,7 @@ def dose_data(project, data, shot, layers, OD=False, scanner=None,
         nlayer = rcf.letter_to_num(layer)
         layer_material = stack_composition[nlayer-1] # Subtract 1 because letter 1 is A, but array start is 0
         print("Layer " + str(nlayer) + " material is " + layer_material)
-        
+
         layer_RGB = data[n] # First layer
         ny, nx = layer_RGB.shape[0:2] # Dimensions of image
 
@@ -414,7 +417,7 @@ def dose_data(project, data, shot, layers, OD=False, scanner=None,
             error_RBG = np.zeros(layer_RGB.shape) # This should probably feed into convert_dose function
 
         # Setup to clean RCF layer of dust/scratches etc.
-        if clean==True: # Boolean array containing positions of "real" data (=True where real)
+        if clean: # Boolean array containing positions of "real" data (=True where real)
             print("Cleaning radiographs.")
             layer_clean = clean_array(layer_RGB, project, shot, layer, channels=clean_chan,
                                       OD=OD, scanner=scanner, material_type=material_type,
@@ -464,19 +467,19 @@ def dose_data(project, data, shot, layers, OD=False, scanner=None,
         layer_dose_err_interp = interp_nan_2D(layer_dose_err_nan, None, plot=False)
 
         # Flag in case interpolation causes values to exceed maximum possible range.
-        # This was used where the array was cleaned before dosing. 
-        # if ((OD and (((np.amax(layer_RGB_interp, axis=(0,1)) - np.log10(null_ave/1))>0).any() or 
+        # This was used where the array was cleaned before dosing.
+        # if ((OD and (((np.amax(layer_RGB_interp, axis=(0,1)) - np.log10(null_ave/1))>0).any() or
         #              ((np.amin(layer_RGB_interp, axis=(0,1)) - np.log10(null_ave/2**16))<0).any()))
         #     or (not OD and (np.amin(layer_RGB_interp) < 1 or np.amax(layer_RGB_interp) > 2**16))):
         #     raise Exception("Interpolation has caused values to exceed maximum range.")
-        
+
         t1 = time.time()
         
-        print("The elapsed interpolating time for this layer was {:.2f}.".format(t1-t0))
+        print(f"The elapsed interpolating time for this layer was {t1-t0:.2f}.")
 
         data_dose.append(layer_dose_interp)
         data_dose_err.append(layer_dose_err_interp)
-        
+
         n += 1
 
     return data_dose, data_dose_err
@@ -537,41 +540,53 @@ def get_dose_data(project, shot, stack, layers, suffix=None, edge=0, shape="squa
         should be combined to form the final piece of data, weighted by their
         errors.
     '''
-        
+
     print('Reading radiograph data.')
-    
+
     data = rcf.get_stack_data(project, shot, stack, layers, suffix=suffix,
                               flipx=False, flipy=False)
-    
+
     if plot:
         print("Plotting radiograph data.")
         rcf.plot_data_list(data, title="RCF Raw RGB")
 
-    data_dose, data_dose_err = dose_data(project, data, shot, layers, OD=OD, scanner=scanner, 
+    data_dose, data_dose_err = dose_data(project, data, shot, layers, OD=OD, scanner=scanner,
                                          material_type=material_type, clean=clean, sigma=sigma,
                                          clean_chan=clean_chan, plot=plot, cout=cout)
-            
+
     # Crop and rotate after dosing is done. Rotation before imprints a grid into
     # the data, whic is most visible during the cleaing phase. Rotating after
     # cleaning (and dosing) overcomes this issue. However, as the data has not
     # yet been cropped there is some risk that during the interpolation stage
     # artifacts are introduced.
-    data_dose_rc = rcf.rotate_crop_data(data_dose, project, shot, layers, 
+    data_dose_rc = rcf.rotate_crop_data(data_dose, project, shot, layers,
                                         edge=edge, shape=shape, rot=True, plot=False)
-    data_error_rc = rcf.rotate_crop_data(data_dose_err, project, shot, layers, 
+    data_error_rc = rcf.rotate_crop_data(data_dose_err, project, shot, layers,
                                          edge=edge, shape=shape, rot=True, plot=False)
-    
+
     # Combine colour channels to maximise dose range.
-    data_dose_comb, data_error_comb = combine_dose(data_dose_rc, data_error_rc, 
+    data_dose_comb, data_error_comb = combine_dose(data_dose_rc, data_error_rc,
                                                    channels=channels)
-    
+
     if plot_output: # Compare results before and after
-        # rcf.plot_comparison([data, data_dose_rc], average=False, colour=2, 
+        # rcf.plot_comparison([data, data_dose_rc], average=False, colour=2,
         #                     title_list=["Before Dose", "After Dose"]) # Image comparison
         rcf.plot_data_list(data_dose_comb, colour=4, cbar_label=r"Dose (kGy)",
                            cmap="viridis", logc=False, save=False)#, title="Combined Dose") # Single image
-            
+
     return data_dose_comb, data_error_comb
+
+def new_get_dose_data(path) -> tuple[list[np.ndarray], list[np.ndarray]]:
+    '''
+    Gets raw image and converts to single images with doses
+
+    Args:
+        path: path to raw image
+
+    Returns:
+        list of doses and errors
+    '''
+
 
 
 # %% Plotting functions
@@ -584,16 +599,16 @@ def plot_clean(data, points, R_val, R_dev, G_val, G_dev, B_val, B_dev, sigma,
     Making the crop region smaller (focussing on dose region) can help confirm
     origin of a signal.
     '''
-    
+
     import matplotlib.colors
-        
+   
     colours = ["Red", "Green", "Blue"]
-    
+
     # Separate colour channels
     data_R = data[:,:,0]
     data_G = data[:,:,1]
     data_B = data[:,:,2]
-    
+
     # if not OD and norm:
     #     data_R = data_R/2**16
     #     data_G = data_G/2**16
@@ -601,14 +616,14 @@ def plot_clean(data, points, R_val, R_dev, G_val, G_dev, B_val, B_dev, sigma,
     #     RG_path = RG_path/2**16
     #     RB_path = RB_path/2**16
     #     GB_path = GB_path/2**16
-    
+
     ny, nx = data_R.shape[:2] # All channels have the same dimensions
     size = nx*ny
     # size = 1500**2
-    
+
     np.random.seed(seed=1)
     random_ind = np.random.randint(0, high=size, size=100000, dtype=int)
-    
+
     # Take random values from all data
     R_exp = np.take((data_R).flatten(), random_ind)
     G_exp = np.take((data_G).flatten(), random_ind)
@@ -616,7 +631,7 @@ def plot_clean(data, points, R_val, R_dev, G_val, G_dev, B_val, B_dev, sigma,
 
     # Take random values from signal
     # R_sig = np.take((data_R*points).flatten(), random_ind)
-    
+
     if RG_path[0] is not None:
         RG_pathR = RG_path[0].T
         RG_pathG = RG_path[1].T
@@ -626,13 +641,13 @@ def plot_clean(data, points, R_val, R_dev, G_val, G_dev, B_val, B_dev, sigma,
     if GB_path[0] is not None:
         GB_pathG = GB_path[0].T
         GB_pathB = GB_path[1].T
-    
+
     fig, ax = pm.plot_figure_axis(25, 3)
     # fig.suptitle("RCF Data (sigma = {})".format(sigma))
 
     # patch = patches.PathPatch(RG_boundR, facecolor='orange', lw=2)
     # ax_clean.add_patch(patch)
-    
+
     if OD:
         bins = np.linspace(0, 2.5, 200)
     else:
@@ -640,7 +655,7 @@ def plot_clean(data, points, R_val, R_dev, G_val, G_dev, B_val, B_dev, sigma,
             bins = np.linspace(1, 2**16, 200)
         elif scale == "log":
             bins = np.logspace(np.log10(2**10), np.log10(2**16-2000), 200)
-    
+
     ax[0].hist2d(R_exp, G_exp, bins=bins, norm=matplotlib.colors.LogNorm())
     # ax[0].hist2d(R_sig, G_sig, bins=bins, norm=matplotlib.colors.LogNorm())
     # ax[0].plot(R_val, G_val, color="k", linestyle="--")
@@ -649,7 +664,7 @@ def plot_clean(data, points, R_val, R_dev, G_val, G_dev, B_val, B_dev, sigma,
         ax[0].plot(RG_pathR[0,:], RG_pathR[1,:], color="r")
         ax[0].plot(RG_pathG[0,:], RG_pathG[1,:], color="g")
     # ax[0].set_title("R vs G")
-    
+
     ax[1].hist2d(R_exp, B_exp, bins=bins, norm=matplotlib.colors.LogNorm())
     if RB_path[0] is not None:
         ax[1].plot(RB_pathR[0,:], RB_pathR[1,:], color="r")
@@ -659,7 +674,7 @@ def plot_clean(data, points, R_val, R_dev, G_val, G_dev, B_val, B_dev, sigma,
     if GB_path[0] is not None:
         ax[2].plot(GB_pathG[0,:], GB_pathG[1,:], color="g")
         ax[2].plot(GB_pathB[0,:], GB_pathB[1,:], color="b")
-    
+
     # Setup colour bar
     from mpl_toolkits.axes_grid1 import make_axes_locatable
     from matplotlib.cm import ScalarMappable
@@ -669,7 +684,7 @@ def plot_clean(data, points, R_val, R_dev, G_val, G_dev, B_val, B_dev, sigma,
     # if cbar_label is not None:
     #     cbar.ax.get_yaxis().labelpad = 30
     #     cbar.ax.set_ylabel(cbar_label, rotation=270)
-    
+
     n = 0
     for axi in ax:
         axi.tick_params(which="both", direction='in', length=8)
@@ -690,9 +705,9 @@ def plot_clean(data, points, R_val, R_dev, G_val, G_dev, B_val, B_dev, sigma,
     else:
         ax[0].set_ylabel("{} channel (16-bit)".format(colours[1]))
     fig.subplots_adjust(wspace=0, hspace=0)
-    
+
     fig.tight_layout()
-    
+
     if 1:
         fig_clean, ax_clean = pm.plot_figure_axis("small", 4, shape=2, ratio=[1,(ny/nx)])
         ax_clean[0].imshow(points)
@@ -712,11 +727,11 @@ def plot_clean(data, points, R_val, R_dev, G_val, G_dev, B_val, B_dev, sigma,
         ax_clean.set_xlabel("x (mm)")
         ax_clean.set_ylabel("y (mm)")
         fig_clean.tight_layout()
-        
-        
+
+
     if 0:
         fig_res, ax_res = pm.plot_figure_axis("small", 2, [[2,3]], ratio=[4/7, 1])
-        
+
         ax_res[0].hist2d(G_exp, B_exp, bins=bins, norm=matplotlib.colors.LogNorm())
         if GB_path[0] is not None:
             ax_res[0].plot(GB_pathG[0,:], GB_pathG[1,:], color="g")
@@ -726,13 +741,13 @@ def plot_clean(data, points, R_val, R_dev, G_val, G_dev, B_val, B_dev, sigma,
             if not OD and scale == "log":
                 ax_res[0].set_xscale("log")
                 ax_res[0].set_yscale("log")
-        
+
         res = rcf.convert_dpi_to_m(300)
         im_extent = [0, nx*res, 0, ny*res]
         ax_res[1].imshow(points, extent=im_extent)
         ax_res[1].set_xlabel("x (mm)")
         ax_res[1].set_ylabel("y (mm)")
-        
+
         fig_res.tight_layout()
 
     # fig.savefig("temp.png", dpi=300)
@@ -748,8 +763,8 @@ if __name__ == "__main__":
     project = "Woolsey_2019"
     # project = "Ridgers_2021"
     # project = "Carroll_2020"
-    
-    if project == "Woolsey_2019":    
+
+    if project == "Woolsey_2019":
         shot = "056"
         stack = "56"
         layers = ["B"]
@@ -760,7 +775,7 @@ if __name__ == "__main__":
         material_type = "0"
         clean = False
         channels = [0,1,0]
-        
+
     elif project == "Ridgers_2021":
         shot = "048" #1,4,5,6,9 #67,68,69
         stack = "36"
@@ -772,7 +787,7 @@ if __name__ == "__main__":
         material_type = None
         clean = True
         channels = [1,1,1]
-    
+
     elif project  == "Carroll_2020":
         shot = "001"
         stack = "1"
@@ -784,7 +799,7 @@ if __name__ == "__main__":
         material_type = None
         clean = True
         channels = [1,1,1]
-    
+
     # Convert pixel count to dose
     if 1:
         RCF_dosed_data = get_dose_data(project, shot, stack, layers, suffix=suffix, 
@@ -792,7 +807,7 @@ if __name__ == "__main__":
                                        scanner=scanner, material_type=material_type, 
                                        clean=clean, sigma=5, clean_chan=[1,1,1], 
                                        channels=channels, plot=True)    
-        
+
     # Saving data
     if 0:
         rcf.save_radiography_data(RCF_dosed_data, stack, layers, "colours")

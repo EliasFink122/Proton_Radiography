@@ -93,7 +93,7 @@ def maxwellian_distribution(velocity_MeV, n_perm3, T_MeV):
 
     oned_amplitude = (2*np.pi*T_MeV*pc.e*1e6/pc.m_p)**(-1/2)
 
-    #amplitude = n_perm3 / np.power(2 * np.pi * T_MeV * 1e6 * pc.e / pc.m_p, 3/2) #3/2
+    # amplitude = n_perm3 / np.power(2 * np.pi * T_MeV * 1e6 * pc.e / pc.m_p, 3/2) #3/2
 
 
     maxwellian_f = n_perm3* oned_amplitude * np.exp(exponent)
@@ -409,9 +409,12 @@ def spectrum_fit(energy_MeV, stack_bragg_MeV, stack_dNdE, error=False, plot=Fals
         ax.set_xlim(xmin=0, xmax=np.round(stack_bragg_MeV[-1]+5,-1))
         ax.set_yscale("log")
         fig.tight_layout()
-
-    popt, pcov = curve_fit(log10_function, stack_bragg_MeV, np.log10(stack_dNdE),
-                           p0=guess, bounds=(lower_bound, upper_bound))
+    try:
+        popt, pcov = curve_fit(log10_function, stack_bragg_MeV[:-1], np.log10(stack_dNdE[:-1]),
+                            p0=guess, bounds=(lower_bound, upper_bound))
+    except ValueError:
+        print(stack_dNdE)
+        raise ValueError("Oups")
     pstd = np.diag(pcov)
 
     dNdE_fit = 10**log10_function(energy_MeV, *popt)
@@ -497,15 +500,15 @@ def plot_spectrum(x, y, label=None, x_2=None, y_2=None, label_2=None,
 
     if y_line_fit is not None:
         y_line = maxwellian_probability(x_line, *y_line_fit[0])
-        y_line_p = maxwellian_probability(x_line, y_line_fit[0][0], 
+        y_line_p = maxwellian_probability(x_line, y_line_fit[0][0],
                                           y_line_fit[0][1]+y_line_fit[1][1])
-        y_line_m = maxwellian_probability(x_line, y_line_fit[0][0], 
+        y_line_m = maxwellian_probability(x_line, y_line_fit[0][0],
                                           y_line_fit[0][1]-y_line_fit[1][1])
     if y_line_fit_2 is not None:
         y_line_2 = maxwellian_probability(x_line, *y_line_fit_2[0])
-        y_line_p_2 = maxwellian_probability(x_line, y_line_fit_2[0][0], 
+        y_line_p_2 = maxwellian_probability(x_line, y_line_fit_2[0][0],
                                             y_line_fit_2[0][1]+y_line_fit_2[1][1])
-        y_line_m_2 = maxwellian_probability(x_line, y_line_fit_2[0][0], 
+        y_line_m_2 = maxwellian_probability(x_line, y_line_fit_2[0][0],
                                             y_line_fit_2[0][1]-y_line_fit_2[1][1])
 
     fig, ax = pm.plot_figure_axis()
@@ -550,7 +553,7 @@ if project == "Carroll_2023":
     design = None
     shot = "019"
     stack = "18"
-    layers = ["B","C","D","E","F","G","H","I","J","K","L"] 
+    layers = ["B","C","D","E","F","G","H","I","J","K","L"]
     suffix = None
     edge = [100,20]
     scanner = "Epson_12000XL"
@@ -618,8 +621,8 @@ if 0: # Test solver
 
 
 
-#plt.title('shot' + str(shot))
-#plt.show()
+plt.title('shot' + str(shot))
+plt.show()
 
 
 # calibrated = True

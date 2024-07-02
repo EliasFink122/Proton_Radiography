@@ -408,7 +408,7 @@ def get_corners(project, shot, layers, shape="rectangle"):
     data = data[:,nlayer] # Extract only corners of desired layers
 
     if np.isnan(data).any():
-        raise Exception("Corners have not been input. Exiting.")
+        raise RuntimeError("Corners have not been input. Exiting.")
 
     return data
 
@@ -433,12 +433,12 @@ def calc_angle(corners, line="horizontal"):
 
         if line == "diagonal":
             angle[layer] = np.arctan(dy/dx) + np.pi/4 # Change in angle in radians
-            raise Exception("Is this still used? (08/11/23)")
+            raise RuntimeError("Is this still used? (08/11/23)")
 
         elif line == "horizontal":
             angle[layer] = np.arctan(dy/dx)
 
-        print("Input RCF layer {0} is rotated by {1:.2g} degrees.".format(layer, np.degrees(angle[layer])))
+        print(f"Input RCF layer {layer} is rotated by {np.degrees(angle[layer])} degrees.")
 
     return angle
 
@@ -594,12 +594,12 @@ def crop_data(data, corners_diag=None, edge=250, shape="rectangle", corners_setu
         edgeX = edge
         edgeY = edge
 
-    print("Cropping extra {} pixels off each border due to noise.".format(edge))
+    print(f"Cropping extra {edge} pixels off each border due to noise.")
 
     for layer in range(layers):
 
         if (data[layer].shape[0]<2*edgeY) or (data[layer].shape[1]<2*edgeX):
-            raise Exception("Crop area is larger than image. Exiting.")
+            raise RuntimeError("Crop area is larger than image. Exiting.")
 
         if corners_diag is None:
             corners00 = [0,0]
@@ -883,7 +883,7 @@ def plot_comparison(data_list, average=False, colour=0, title_list=None,
 if __name__ == "__main__":
 
     # project = "Woolsey_2019"
-    project = "Carroll_2020"
+    project = "Carroll_2023"
 
     # shot = "056"
     shot = "001"
