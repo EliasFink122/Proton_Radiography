@@ -99,10 +99,10 @@ def rotate(imgs: list[np.ndarray]) -> list[np.ndarray]:
                 edge_x = edge_x[i:]
                 edge_y = edge_y[i:]
 
-        p1 = np.array([edge_x[int(0.2 * len(edge_x))],
-                       edge_y[int(0.2 * len(edge_y))]])
-        p2 = np.array([edge_x[int(0.8 * len(edge_x))],
-                       edge_y[int(0.8 * len(edge_y))]])
+        p1 = np.array([edge_x[int(0.05 * len(edge_x))],
+                       edge_y[int(0.05 * len(edge_y))]])
+        p2 = np.array([edge_x[int(0.95 * len(edge_x))],
+                       edge_y[int(0.95 * len(edge_y))]])
 
         theta = np.arctan((p2[0] - p1[0])/(p2[1] - p1[1]))
 
@@ -122,6 +122,28 @@ def rotate(imgs: list[np.ndarray]) -> list[np.ndarray]:
                         new_img[new_i, new_j] = pixel
                     except IndexError:
                         continue
+
+        start = 0
+        end = len(new_img) - 1
+        for j, row in enumerate(new_img):
+            if np.mean(row) <= 250 and np.mean(new_img[j-1]) > 250:
+                start = j
+            elif np.mean(row) > 250 and np.mean(new_img[j-1]) <= 250 and j != 0:
+                if j - start > 100:
+                    end = j
+                break
+        new_img = new_img[start:end]
+
+        start = 0
+        end = len(new_img.transpose(1, 0, 2)) - 1
+        for j, row in enumerate(new_img.transpose(1, 0, 2)):
+            if np.mean(row) <= 250 and np.mean(new_img.transpose(1, 0, 2)[j-1]) > 250:
+                start = j
+            elif np.mean(row) > 250 and np.mean(new_img.transpose(1, 0, 2)[j-1]) <= 250 and j != 0:
+                if j - start > 100:
+                    end = j
+                break
+        new_img = new_img.transpose(1, 0, 2)[start:end].transpose(1, 0, 2)
         imgs_rotated.append(new_img)
 
     return imgs_rotated
