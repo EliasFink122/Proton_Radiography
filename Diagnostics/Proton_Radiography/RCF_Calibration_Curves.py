@@ -195,14 +195,14 @@ def get_calibration(material, colour, scanner=None, material_type=None,
             material_type = "3"
         elif material == "EBT3":
             material_type = "5"
-        
-    if version == None:
+
+    if version is None:
         version_suffix = ""
     else: # Suffix if latest version is not being used
         version_suffix = "_" + version
-    
-    raw_data = np.genfromtxt('Calibration/' + scanner + '/' + material
-                             + "_" + material_type + "_calibration" 
+
+    raw_data = np.genfromtxt('Diagnostics/Proton_Radiography/Calibration/' + scanner + '/' + material
+                             + "_" + material_type + "_calibration"
                              + version_suffix + '.csv',delimiter=',')
 
     # Would be better to find row/column numbers using headers etc.
