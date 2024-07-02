@@ -99,27 +99,29 @@ def rotate(imgs: list[np.ndarray]) -> list[np.ndarray]:
                 edge_x = edge_x[i:]
                 edge_y = edge_y[i:]
 
-        # theta = np.arctan(y_left/x_top)
+        p1 = np.array([edge_x[int(0.2 * len(edge_x))],
+                       edge_y[int(0.2 * len(edge_y))]])
+        p2 = np.array([edge_x[int(0.8 * len(edge_x))],
+                       edge_y[int(0.8 * len(edge_y))]])
 
-        new_img = img
-        for i, p_x in enumerate(edge_x):
-            new_img[int(edge_y[i]), int(p_x)] = [255, 0, 0]
-        # rotation_matrix = np.array([[np.cos(theta), -np.sin(theta)],
-        #                             [np.sin(theta), np.cos(theta)]])
-        # new_img = np.full(np.shape(img), 255)
-        # for i, row in enumerate(img):
-        #     for j, pixel in enumerate(row):
-        #         if np.mean(pixel) != 255:
-        #             old_xy = np.array([j - len(img[0])/2, i - len(img)/2])
-        #             new_xy = np.dot(rotation_matrix, old_xy)
-        #             try:
-        #                 new_j = int(new_xy[0] + len(row)/2)
-        #                 new_i = int(new_xy[1] + len(img)/2)
-        #                 if new_j < 0 or new_i < 0:
-        #                     continue
-        #                 new_img[new_i, new_j] = pixel
-        #             except IndexError:
-        #                 continue
+        theta = np.arctan((p2[0] - p1[0])/(p2[1] - p1[1]))
+
+        rotation_matrix = np.array([[np.cos(theta), -np.sin(theta)],
+                                    [np.sin(theta), np.cos(theta)]])
+        new_img = np.full(np.shape(img), 255)
+        for i, row in enumerate(img):
+            for j, pixel in enumerate(row):
+                if np.mean(pixel) != 255:
+                    old_xy = np.array([j - len(img[0])/2, i - len(img)/2])
+                    new_xy = np.dot(rotation_matrix, old_xy)
+                    try:
+                        new_j = int(new_xy[0] + len(row)/2)
+                        new_i = int(new_xy[1] + len(img)/2)
+                        if new_j < 0 or new_i < 0:
+                            continue
+                        new_img[new_i, new_j] = pixel
+                    except IndexError:
+                        continue
         imgs_rotated.append(new_img)
 
     return imgs_rotated
