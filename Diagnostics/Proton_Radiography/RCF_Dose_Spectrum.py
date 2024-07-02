@@ -136,7 +136,7 @@ def log10_function(velocity_MeV, n_perm3, T_MeV):
 
     maxwellian_log10 = np.log10(maxwellian)
 
-    #check for nans within the log10 function - i think this is what is causing the problems with the 1D maxwellian.
+    # check for nans within the log10 function - i think this is what is causing the problems with the 1D maxwellian.
 
     maxwellian_log10 = np.nan_to_num(maxwellian_log10, nan= 39.07232309)
 
@@ -333,8 +333,8 @@ def get_dNdE_spectrum_iter(E, R_stack, dE_stack, D_stack, D_error=None, tol=0.05
     return dNdE_stack
 
 
-def get_proton_spectrum(stack_energy, deposition_curves, deposition_energy_MeV, 
-                        stack_layers=None, stack_energy_error=None, method="BPD", 
+def get_proton_spectrum(stack_energy, deposition_curves, deposition_energy_MeV,
+                        stack_layers=None, stack_energy_error=None, method="BPD",
                         tol=0.05, T_iter= None , cutoff_iter=None, plot=False):
     '''
     Calculate the proton spectrum using the Bragg peak dominated method.
@@ -372,10 +372,10 @@ def get_proton_spectrum(stack_energy, deposition_curves, deposition_energy_MeV,
                                             D_error=stack_energy_error, tol=tol,
                                             T_n=T_iter, cutoff_n=cutoff_iter)
 
-    stack_fit = spectrum_fit(deposition_energy_MeV, stack_bragg_MeV, stack_dNdE, 
+    stack_fit = spectrum_fit(deposition_energy_MeV, stack_bragg_MeV, stack_dNdE,
                              error=error, plot=plot)
 
-    #print(stack_fit)
+    # print(stack_fit)
 
     return stack_dNdE, stack_bragg_MeV, stack_fit
 
@@ -521,7 +521,7 @@ def plot_spectrum(x, y, label=None, x_2=None, y_2=None, label_2=None,
         ax.plot(x_line, y_line_2*scale, label=label_line, color="k", linestyle="--", zorder=0)
         if y_line_fit is not None:
             ax.fill_between(x_line, y_line_m_2*scale, y_line_p_2*scale, color=cmap(1), alpha=0.5)
-        
+
     ax.set_xlabel("$E_\mathrm{k}$ (MeV)")
     if y_unit == "perMeV":
         ax.set_ylabel("$dN/dE$ (MeV$^{-1}$)")
@@ -601,7 +601,7 @@ if 1:
                                                          deposition_energy, stack_layers=layers, method = "BPD")#,
                                                          # stack_energy_error=stack_error_total)
 
-    
+
     iter_dNdE, __, iter_fit = get_proton_spectrum(stack_energy_total, deposition_curves, 
                                                   deposition_energy, stack_layers=layers, 
                                                   method="iter", T_iter= BPD_fit[0][0], cutoff_iter = 59) #T_iter=6.754, cutoff_iter=23.887)
@@ -662,7 +662,7 @@ if 0: # Test solver
 #         RCF_data = get_rotate_crop_data(project, shots[n], stack[n], layers)
 #         centre = gaussian_fit(RCF_data, analysis="calib", plot=False)
 #     else:
-#         RCF_data = get_dose_data(project, shots[n], stack[n], layers, suffix=suffix, 
+#         RCF_data = get_dose_data(project, shots[n], stack[n], layers, suffix=suffix,
 #                                   edge=edge, shape=shape, calibration="valid", scanner=scanner,
 #                                   clean=False, sigma=5, nan=True, plot=False)
 #         centre, sigma = gaussian_fit(RCF_data, analysis="dose", yfit=yfit, plot=True)
@@ -678,7 +678,7 @@ if 0: # Test solver
 #             fig_centre.tight_layout()
 
 #     average = calc_average_circle(RCF_data, centre, radius, fixed=centre_layer,
-#                                   semicircle=semicircle, yoffset=yoffset, 
+#                                   semicircle=semicircle, yoffset=yoffset,
 #                                   plot=False)[0]
 
 #     proton_energy = get_stack_design(project, shots[n], info="energy")

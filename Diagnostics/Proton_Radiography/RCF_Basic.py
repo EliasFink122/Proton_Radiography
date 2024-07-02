@@ -31,7 +31,7 @@ I have started to implement this change now.
 # Path settings
 
 # Path to main directory (only needed if code is not being run in the main folder)
-# rootdir = r"C:\Users\benny\Desktop\Proton_Radiography_Tool\Diagnostics\Proton_Radiography"
+rootdir = r"/Users/eliasfink/Desktop/Proton radiography"
 
 
 # %% Libraries
@@ -44,10 +44,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-# if os.path.split(os.getcwd())[1] != "Proton_Radiography":
-#     sys.path.insert(1, rootdir)
-# else:
-#     sys.path.insert(1, '../../Codes/Python_Scripts')
+if os.path.split(os.getcwd())[1] != "Proton_Radiography":
+    sys.path.insert(1, rootdir)
+else:
+    sys.path.insert(1, '../../Codes/Python_Scripts')
 import Physics_Constants as pc
 import Plot_Master as pm
 
@@ -77,7 +77,7 @@ def get_radiography_data(project, shot, file, colour=None, location=None,
         os.chdir(project)
 
         if scanner is None: # Scanner must be specified
-            raise Exception("Scanner not selected. Exiting.")
+            raise RuntimeError("Scanner not selected. Exiting.")
         else:
             os.chdir(scanner)
 
@@ -85,7 +85,7 @@ def get_radiography_data(project, shot, file, colour=None, location=None,
 
     # Load data from experiment directories
     elif location is not None:
-        print("Enterting {} directory.".format(location))
+        print(f"Entering {location} directory.")
         os.chdir("../../Projects/" + project + "/Experiment_Data/Proton_Radiography/" + location)
 
     else:
@@ -101,7 +101,7 @@ def get_radiography_data(project, shot, file, colour=None, location=None,
         print(file)
         print(os.listdir())
         os.chdir(owd)
-        raise FileNotFoundError("File is not in directory (Shot={}). Exiting.".format(shot))
+        raise FileNotFoundError(f"File is not in directory (Shot={shot}). Exiting.")
 
     # Load data
     if dtype == ".txt":
@@ -136,7 +136,7 @@ def get_radiography_data(project, shot, file, colour=None, location=None,
         elif colour == "B":
             c = 2
 
-        print("Removing all colour channels except {}.".format(colour))
+        print(f"Removing all colour channels except {colour}.")
         data = data[:,:,c]
 
     if plot:
@@ -491,7 +491,7 @@ def calc_missing_corners_prerot(corners, angle, shape="rectangle"):
     '''
     Finds missing corners, assuming RCF has not been yet rotated
     I will probably phase out the square shape, so will remove this with time.
-    There could be a bug in here... but I haven't seen it cause real issues yet?    
+    There could be a bug in here... but I haven't seen it cause real issues yet?
     '''
 
     layers = corners.shape[1]
