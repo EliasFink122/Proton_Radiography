@@ -21,7 +21,7 @@ def import_tif() -> np.ndarray:
 
     for i, row in enumerate(imarray):
         for j, pixel in enumerate(row):
-            if np.mean(pixel) > 200:
+            if np.mean(pixel) > 180:
                 imarray[i][j] = [255, 255, 255]
     return imarray
 
@@ -39,9 +39,9 @@ def slice_image(img: np.ndarray) -> list[np.ndarray]:
     starts = []
     ends = []
     for i, row in enumerate(img):
-        if np.mean(row) <= 240 and np.mean(img[i-1]) > 240:
+        if np.mean(row) <= 254 and np.mean(img[i-1]) > 254:
             starts.append(i)
-        elif np.mean(row) > 240 and np.mean(img[i-1]) <= 240:
+        elif np.mean(row) > 254 and np.mean(img[i-1]) <= 254:
             ends.append(i)
     for i, start in enumerate(starts):
         if ends[i] - start > 100:
@@ -89,7 +89,7 @@ def rotate(imgs: list[np.ndarray]) -> list[np.ndarray]:
         edge_y = np.array([])
         for i, row in enumerate(img):
             for j, pixel in enumerate(row):
-                if np.mean(pixel) <= 200:
+                if np.mean(pixel) <= 150:
                     edge_x = np.append(edge_x, j)
                     edge_y = np.append(edge_y, i)
                     break
@@ -99,10 +99,10 @@ def rotate(imgs: list[np.ndarray]) -> list[np.ndarray]:
                 edge_x = edge_x[i:]
                 edge_y = edge_y[i:]
 
-        p1 = np.array([edge_x[int(0.05 * len(edge_x))],
-                       edge_y[int(0.05 * len(edge_y))]])
-        p2 = np.array([edge_x[int(0.95 * len(edge_x))],
-                       edge_y[int(0.95 * len(edge_y))]])
+        p1 = np.array([edge_x[int(0.1 * len(edge_x))],
+                       edge_y[int(0.1 * len(edge_y))]])
+        p2 = np.array([edge_x[int(0.9 * len(edge_x))],
+                       edge_y[int(0.9 * len(edge_y))]])
 
         theta = np.arctan((p2[0] - p1[0])/(p2[1] - p1[1]))
 
@@ -126,9 +126,9 @@ def rotate(imgs: list[np.ndarray]) -> list[np.ndarray]:
         start = 0
         end = len(new_img) - 1
         for j, row in enumerate(new_img):
-            if np.mean(row) <= 250 and np.mean(new_img[j-1]) > 250:
+            if np.mean(row) <= 150 and np.mean(new_img[j-1]) > 150:
                 start = j
-            elif np.mean(row) > 250 and np.mean(new_img[j-1]) <= 250 and j != 0:
+            elif np.mean(row) > 150 and np.mean(new_img[j-1]) <= 150 and j != 0:
                 if j - start > 100:
                     end = j
                 break
@@ -137,9 +137,9 @@ def rotate(imgs: list[np.ndarray]) -> list[np.ndarray]:
         start = 0
         end = len(new_img.transpose(1, 0, 2)) - 1
         for j, row in enumerate(new_img.transpose(1, 0, 2)):
-            if np.mean(row) <= 250 and np.mean(new_img.transpose(1, 0, 2)[j-1]) > 250:
+            if np.mean(row) <= 150 and np.mean(new_img.transpose(1, 0, 2)[j-1]) > 150:
                 start = j
-            elif np.mean(row) > 250 and np.mean(new_img.transpose(1, 0, 2)[j-1]) <= 250 and j != 0:
+            elif np.mean(row) > 150 and np.mean(new_img.transpose(1, 0, 2)[j-1]) <= 150 and j != 0:
                 if j - start > 100:
                     end = j
                 break
