@@ -1,0 +1,1 @@
+1. Put all raw file images into Data folder

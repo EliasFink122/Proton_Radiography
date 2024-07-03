@@ -216,7 +216,7 @@ def build_layers(input_layers=None, project=None, shot=None, design=None):
 def build_stack(input_layers=None, project=None, shot=None, design=None):
     '''Build and RCF stack with a given design.'''
 
-    layers = build_layers(input_layers=input_layers, project=project, shot=shot, 
+    layers = build_layers(input_layers=input_layers, project=project, shot=shot,
                           design=design) # Returns a list containg the stack specs.
     # print(layers)
 
@@ -350,7 +350,7 @@ def get_deposition_curves(energy_range_MeV=[1,40], input_layers=None, project=No
 
     if plot:
         # Get energy bands - this was in Joules rather than eV (leads to plot bug) in plasmapy
-        # ebands = stack.energy_bands(energy_range_MeV * u.MeV, dE * u.MeV, dx=dx * u.um, 
+        # ebands = stack.energy_bands(energy_range_MeV * u.MeV, dE * u.MeV, dx=dx * u.um,
         #                             return_only_active=return_active)
         ebands = calc_energy_bands(energy, deposition_curves, normalise,
                                    frac=1/np.e, output=output_eband)
@@ -375,7 +375,7 @@ def plot_stopping_power(materials, nplot=1):
     if isinstance(materials, str):
         materials = [materials]
     elif not isinstance(materials, list):
-        raise RuntimeError("Materials should be either desired string or list.")        
+        raise RuntimeError("Materials should be either desired string or list.")
 
     fig, ax = pm.plot_figure_axis("small", nplot)
     if nplot == 1:

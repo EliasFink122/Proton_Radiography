@@ -51,6 +51,8 @@ from RCF_Calibration_Curves import convert_intensity_OD_RGB
 sys.path.insert(1, '../../Codes/Python_Scripts/')
 import Plot_Master as pm
 
+rootdir = r"/Users/eliasfink/Desktop/Proton_Radiography"
+
 
 # %% Functions
 
@@ -106,7 +108,7 @@ def clean_array(data, project, shot, layer, channels=[1,1,1], OD=False,
     channel: if channel is selected (=1) it will be included in the clean 
         function, order is ["RG","RB","GB"].
     '''
-    print("Extracting all data within {} sigma of calibration curve.".format(sigma))
+    print("Extracting all data within {sigma} sigma of calibration curve.")
 
     # Load stack composition to get correct calibration curves
     stack_composition = rcf.get_stack_design(project, shot, info="material")
@@ -115,13 +117,13 @@ def clean_array(data, project, shot, layer, channels=[1,1,1], OD=False,
 
     layer_material = stack_composition[nlayer-1] #Subtract 1 because letter 1 is A, but array start is 0
 
-    R_dose, R_val, R_dev = get_calibration(layer_material, 0, scanner=scanner, 
+    R_dose, R_val, R_dev = get_calibration(layer_material, 0, scanner=scanner,
                                            material_type=material_type, OD=OD,
                                            calibration="full", plot=False)
-    G_dose, G_val, G_dev = get_calibration(layer_material, 1, scanner=scanner, 
+    G_dose, G_val, G_dev = get_calibration(layer_material, 1, scanner=scanner,
                                            material_type=material_type, OD=OD,
                                            calibration="full", plot=False)
-    B_dose, B_val, B_dev = get_calibration(layer_material, 2, scanner=scanner, 
+    B_dose, B_val, B_dev = get_calibration(layer_material, 2, scanner=scanner,
                                            material_type=material_type, OD=OD,
                                            calibration="full", plot=False)
 
@@ -130,8 +132,8 @@ def clean_array(data, project, shot, layer, channels=[1,1,1], OD=False,
     data_G = data[:,:,1]
     data_B = data[:,:,2]
 
-    # Fix so that when "valid" calibration is used all calibration pixel values 
-    # and deviation arrays are the same size/have the same dose values. 
+    # Fix so that when "valid" calibration is used all calibration pixel values
+    # and deviation arrays are the same size/have the same dose values.
     # This means losing some data... not sure what can be done about this for now.
     # Either arrays have to be the same size (so every dose has a corresponding
     # pixel in all 3 colours), or I need to extrapolate?
@@ -144,7 +146,7 @@ def clean_array(data, project, shot, layer, channels=[1,1,1], OD=False,
     (R_dev, G_dev, B_dev) = dev
 
     # Find coordinates of points within each pair of calibration curves
-    RG_points, RG_path = find_bound_points(data_R, data_G, R_val, R_dev, 
+    RG_points, RG_path = find_bound_points(data_R, data_G, R_val, R_dev,
                                            G_val, G_dev, sigma, channels[0])
     RB_points, RB_path = find_bound_points(data_R, data_B, R_val, R_dev,
                                            B_val, B_dev, sigma, channels[1])
@@ -154,7 +156,7 @@ def clean_array(data, project, shot, layer, channels=[1,1,1], OD=False,
     points = RG_points * RB_points * GB_points # Combine
 
     if plot:
-        plot_clean(data, points, R_val, R_dev, G_val, G_dev, 
+        plot_clean(data, points, R_val, R_dev, G_val, G_dev,
                    B_val, B_dev, sigma, RG_path, RB_path, GB_path,
                    RG_points, RB_points, GB_points, OD=OD)
     # sys.exit()
@@ -367,8 +369,8 @@ def convert_dose(data, material, OD=False, scanner=None, material_type=None,
     return data_dose, data_dose_err
 
 
-def dose_data(project, data, shot, layers, OD=False, scanner=None, 
-              material_type=None, clean=True, sigma=5, 
+def dose_data(project, data, shot, layers, OD=False, scanner=None,
+              material_type=None, clean=True, sigma=5,
               clean_chan=[1,1,1], plot=False, cout=None):
     '''
     Function for converting pixel value to proton dose in Gy
@@ -394,17 +396,16 @@ def dose_data(project, data, shot, layers, OD=False, scanner=None,
     data_dose_err = []
 
     # Iterate through layers
-    n = 0
-    for layer in layers:
+    for n, layer in enumerate(layers):
         nlayer = rcf.letter_to_num(layer)
-        layer_material = stack_composition[nlayer-1] # Subtract 1 because letter 1 is A, but array start is 0
+        layer_material = stack_composition[nlayer-1] # A -> 1 but array 0-index
         print("Layer " + str(nlayer) + " material is " + layer_material)
 
         layer_RGB = data[n] # First layer
         ny, nx = layer_RGB.shape[0:2] # Dimensions of image
 
         # Convert intensity to OD if set
-        if OD == True:
+        if OD:
             # Get null data - should be setup so we can just take average
             null = rcf.get_radiography_data(project, "Null", layer_material)
             null_ave = np.mean(null, axis=(0,1))
@@ -429,8 +430,8 @@ def dose_data(project, data, shot, layers, OD=False, scanner=None,
 
         # Convert pixel value to dose
         print("Dosing radiographs.")
-        layer_dose, layer_dose_err = convert_dose(layer_RGB, layer_material, 
-                                                  OD=OD, scanner=scanner, 
+        layer_dose, layer_dose_err = convert_dose(layer_RGB, layer_material,
+                                                  OD=OD, scanner=scanner,
                                                   material_type=material_type)
 
         # Apply cleaning array (interp next) - this makes invalid values 0
@@ -442,8 +443,8 @@ def dose_data(project, data, shot, layers, OD=False, scanner=None,
         data_dose_clean.append(layer_dose_clean)
         # data_dose_err_clean.append(layer_dose_err_clean)
         if plot:
-            rcf.plot_data(data_dose_clean[-1], colour=cout, 
-                          title="RCF Clean RGB (Clean={})".format(str(clean)))
+            rcf.plot_data(data_dose_clean[-1], colour=cout,
+                          title=f"RCF Clean RGB (Clean={str(clean)})")
 
         # Interpolate/inpaint to remove NaNs - used to be an if statement, with
         # NaN values turned to zero otherwise so there was no interpolation.
@@ -482,8 +483,6 @@ def dose_data(project, data, shot, layers, OD=False, scanner=None,
         data_dose.append(layer_dose_interp)
         data_dose_err.append(layer_dose_err_interp)
 
-        n += 1
-
     return data_dose, data_dose_err
 
 
@@ -510,7 +509,7 @@ def combine_dose(dose, error, channels=[1,1,1], plot=True):
 
     for layer in range(layers):
         if np.amin(error[layer]) == 0:
-            raise Exception("Error in dose should not be zero. Exiting.")
+            raise RuntimeError("Error in dose should not be zero. Exiting.")
 
         # error = 1 / sqrt(sum(errors^-2))
         layer_error = error[layer][:,:,channel_index] # Slice out layers which are to be merged
@@ -531,7 +530,7 @@ def combine_dose(dose, error, channels=[1,1,1], plot=True):
     return dose_combined, error_combined
 
 
-def get_dose_data(project, shot, stack, layers, suffix=None, edge=0, shape="square", 
+def get_dose_data(project, shot, stack, layers, suffix=None, edge=0, shape="square",
                   OD=False, scanner=None, material_type=None, clean=True, sigma=5,
                   clean_chan=[1,1,1], channels=[1,1,1], plot=False, cout=None,
                   plot_output=True):
@@ -552,19 +551,25 @@ def get_dose_data(project, shot, stack, layers, suffix=None, edge=0, shape="squa
         print("Plotting radiograph data.")
         rcf.plot_data_list(data, title="RCF Raw RGB")
 
-    data_dose, data_dose_err = dose_data(project, data, shot, layers, OD=OD, scanner=scanner,
-                                         material_type=material_type, clean=clean, sigma=sigma,
-                                         clean_chan=clean_chan, plot=plot, cout=cout)
+    imgs = ic.crop_rot(rootdir + "/Projects/" + project + "/Experiment_Data/Proton_Radiography/Shot001/sh1_st1.tif")
+
+    data_dose_rc, data_error_rc = dose_data(project, imgs, shot, layers, OD=OD, scanner=scanner,
+                                        material_type=material_type, clean=clean, sigma=sigma,
+                                        clean_chan=clean_chan, plot=plot, cout=cout)
+
+    # data_dose, data_dose_err = dose_data(project, data, shot, layers, OD=OD, scanner=scanner,
+    #                                      material_type=material_type, clean=clean, sigma=sigma,
+    #                                      clean_chan=clean_chan, plot=plot, cout=cout)
 
     # Crop and rotate after dosing is done. Rotation before imprints a grid into
     # the data, whic is most visible during the cleaing phase. Rotating after
     # cleaning (and dosing) overcomes this issue. However, as the data has not
     # yet been cropped there is some risk that during the interpolation stage
     # artifacts are introduced.
-    data_dose_rc = rcf.rotate_crop_data(data_dose, project, shot, layers,
-                                        edge=edge, shape=shape, rot=True, plot=False)
-    data_error_rc = rcf.rotate_crop_data(data_dose_err, project, shot, layers,
-                                         edge=edge, shape=shape, rot=True, plot=False)
+    # data_dose_rc = rcf.rotate_crop_data(data_dose, project, shot, layers,
+    #                                     edge=edge, shape=shape, rot=True, plot=False)
+    # data_error_rc = rcf.rotate_crop_data(data_dose_err, project, shot, layers,
+    #                                      edge=edge, shape=shape, rot=True, plot=False)
 
     # Combine colour channels to maximise dose range.
     data_dose_comb, data_error_comb = combine_dose(data_dose_rc, data_error_rc,
@@ -577,16 +582,6 @@ def get_dose_data(project, shot, stack, layers, suffix=None, edge=0, shape="squa
                            cmap="viridis", logc=False, save=False)#, title="Combined Dose") # Single image
 
     return data_dose_comb, data_error_comb
-
-def better_get_dose_data(project: str, shot: str):
-    '''
-    Improvement of get_dose_data.
-
-    Args:
-        project: project name
-        shot: number of shot in xxx number format (e.g. 012)
-    '''
-    pass
 
 
 
@@ -803,11 +798,11 @@ if __name__ == "__main__":
 
     # Convert pixel count to dose
     if 1:
-        RCF_dosed_data = get_dose_data(project, shot, stack, layers, suffix=suffix, 
+        RCF_dosed_data = get_dose_data(project, shot, stack, layers, suffix=suffix,
                                        edge=edge, shape="rectangle", OD=OD,
-                                       scanner=scanner, material_type=material_type, 
-                                       clean=clean, sigma=5, clean_chan=[1,1,1], 
-                                       channels=channels, plot=True)    
+                                       scanner=scanner, material_type=material_type,
+                                       clean=clean, sigma=5, clean_chan=[1,1,1],
+                                       channels=channels, plot=True)
 
     # Saving data
     if 0:

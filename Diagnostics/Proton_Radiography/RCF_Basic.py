@@ -17,12 +17,12 @@ The basic folder layout used in all of my codes is:
                 - Diagnostic (e.g Proton_Radiography)
                     - ShotXXX
                         - Raw Data
-                        
+
 To process an RCF file the following CSVs are required in the experiment Diagnostic folder:
     - RCF_Stack_Type
     - RCF_Stack_Design
     - Corner_Positions(_Diagonal)
-    
+
 In hindsight, it may have been better to write the function to work with a single
 piece of data (instead of a list) and then just loop through the data...
 I have started to implement this change now.
@@ -198,7 +198,7 @@ def save_radiography_data(data, stack, layers, project=None, shot=None,
 
     # Current directory
     owd = os.getcwd()
-    print("The current directory is: {}".format(owd))
+    print(f"The current directory is: {owd}")
 
     # Image directory
     # directory = owd
@@ -330,7 +330,7 @@ def get_stack_design(project, shot=None, design=None, info="all"):
         design = get_stack_type(project, shot)
         shot = int(shot)
     elif design is None:
-        raise Exception("Either shot number or RCF design must be input.")
+        raise RuntimeError("Either shot number or RCF design must be input.")
 
     design_to_num = letter_to_num(design)-1 # Convert design letter to number with "A" = 0
 
@@ -355,7 +355,7 @@ def get_stack_design(project, shot=None, design=None, info="all"):
             data[i] = data[i][1:]
 
     else:
-        raise Exception("RCF information cannot be provided.")
+        raise RuntimeError("RCF information cannot be provided.")
 
     return data
 
@@ -389,7 +389,7 @@ def get_corners(project, shot, layers, shape="rectangle"):
 
     # List containing numbers corresponding to RCF layer
     nlayer = []
-    for layer in layers:    
+    for layer in layers:
         nlayer.append(letter_to_num(layer)-1) # Here A=0 as A is in 0th array position.
 
     owd = os.getcwd()
@@ -504,7 +504,7 @@ def calc_missing_corners_prerot(corners, angle, shape="rectangle"):
     if shape == "rectangle":
         dh = calc_height(corners, angle)
     else:
-        raise Exception("Not setup to find corners for other shapes.")
+        raise RuntimeError("Not setup to find corners for other shapes.")
 
     for layer in range(layers):
         if angle[layer]*180/np.pi > 5:
@@ -671,18 +671,6 @@ def rotate_crop_data(data, project, shot, layers, edge=250, rot=False,
         plot_comparison(data_list, layers, colour=0)
 
     return data_list[-1]
-
-def better_crop_rot(path: str) -> list[np.ndarray]:
-    '''
-    More automated version of rotate_crop_data function
-
-    Args:
-        path: path to image of all stack layers
-
-    Returns:
-        list of all layers in order
-    '''
-    return ic.crop_rot(path)
 
 def get_rotate_crop_data(project, shot, stack, layers, location=False, dtype=".tif",
                          suffix=None, edge=250, shape="rectangle", plot=False):
