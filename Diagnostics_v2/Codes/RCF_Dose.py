@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Wed Jul 03 2024
 
@@ -60,6 +59,9 @@ def convert_to_dose(project: str, shot: str, log = False) -> list[np.ndarray]:
         project: project of interest
         shot: shot of interest
         func: output function of interpolate_calibration
+
+    Returns:
+        all images converted from RGB to dose
     '''
     imgs = ic.crop_rot(ROOTDIR + "/Data/" + project + "/" + "Shot" + shot + "/raw.tif")
 
@@ -77,6 +79,8 @@ def convert_to_dose(project: str, shot: str, log = False) -> list[np.ndarray]:
 
     return converted_imgs
 
-imgs_conv = convert_to_dose(project = "Carroll_2023", shot = "001", log = False)
-plt.imshow(imgs_conv[0]/np.max(imgs_conv[0]), cmap = "rainbow")
-plt.show()
+
+if __name__ == "__main__":
+    imgs_conv = convert_to_dose(project = "Carroll_2023", shot = "001", log = False)
+    plt.imshow(imgs_conv[0]/np.max(imgs_conv[0]), cmap = "rainbow")
+    plt.show()
