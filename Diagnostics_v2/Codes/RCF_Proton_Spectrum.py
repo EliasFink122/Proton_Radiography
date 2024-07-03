@@ -59,7 +59,8 @@ def deposited_energy(project: str, shot: str) -> list[float]:
 
     deposited_energies = []
     for i, layer in enumerate(imgs_converted):
-        mass = calc_active_layer_mass(100, stack_design[f"Layer {i+1}"][0])
+        dpi = 100
+        mass = calc_active_layer_mass(dpi, stack_design[f"Layer {i+1}"][0])
         pixel_energies = layer * mass
         deposited_energies.append(np.sum(pixel_energies))
 

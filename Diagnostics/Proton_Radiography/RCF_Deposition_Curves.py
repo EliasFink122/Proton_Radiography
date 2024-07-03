@@ -102,7 +102,7 @@ def get_target_density(material, database="SRIM"):
         raise FileNotFoundError(f"{file} is not in the Stopping_Power directory.")
 
     if database == "PSTAR":
-        raise Exception("PSTAR files do not contain target density.")
+        raise RuntimeError("PSTAR files do not contain target density.")
 
     elif database == "SRIM": # Have to manually handle formatting
         with open(file) as f:
@@ -259,7 +259,7 @@ def calc_energy_bands(energy, deposition, normalise, mode="frac-max", frac=1/np.
 
     bragg_peak = energy[np.argmax(deposition, axis=1)]
 
-    if mode == "half-energy" and normalise == True:
+    if mode == "half-energy" and normalise:
         print("Data must be un-normalised to obtain half-energy bands. Reverting to half-max.")
         mode = "half-max"
 
@@ -341,7 +341,7 @@ def get_deposition_curves(energy_range_MeV=[1,40], input_layers=None, project=No
                                                     return_only_active=return_active,
                                                     normalise=normalise,
                                                     normalise_type=normalise_type)
-    except:
+    except KeyError:
         deposition_curves = stack.deposition_curves(energy, dx=dx * u.um, 
                                                     return_only_active=return_active)
         normalise = True

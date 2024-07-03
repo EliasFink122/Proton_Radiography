@@ -164,7 +164,7 @@ def calc_dNdE_BPD(E, R, E1, E2, D):
     int_R_y = R[E1_arg:E2_arg+1]
     int_R = np.trapz(int_R_y, x=int_R_x)
 
-    dNdE = D / int_R 
+    dNdE = D / int_R
 
     return dNdE
 
@@ -184,7 +184,7 @@ def get_dNdE_spectrum_BPD(E, R_stack, dE_stack, D_stack, D_error=None):
     # Iterate through layers
     for nlayer in range(nlayers):        
 
-        dNdE_stack[nlayer] = calc_dNdE_BPD(E, R_stack[nlayer], dE_stack[nlayer,0], 
+        dNdE_stack[nlayer] = calc_dNdE_BPD(E, R_stack[nlayer], dE_stack[nlayer,0],
                                            dE_stack[nlayer,1], D_stack[nlayer])
 
     if D_error is not None:

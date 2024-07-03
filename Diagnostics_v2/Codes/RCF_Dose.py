@@ -29,11 +29,14 @@ def interpolate_calibration(scanner = "Epson_12000XL", log = False):
         calibration_path = "/Epson_12000XL/HDV2_3_calibration.csv"
     calibration_data = np.loadtxt(ROOTDIR + "/Calibration/" + calibration_path,
                                   skiprows = 2, delimiter = ',')
-    red_data = np.array(([calibration_data[:, 2].transpose()] + [calibration_data[:, 3].transpose()])).transpose()
+    red_data = np.array(([calibration_data[:, 2].transpose()] +
+                         [calibration_data[:, 3].transpose()])).transpose()
     red_data = red_data[red_data[:, 1].argsort()]
-    green_data = np.array(([calibration_data[:, 2].transpose()] + [calibration_data[:, 5].transpose()])).transpose()
+    green_data = np.array(([calibration_data[:, 2].transpose()] +
+                           [calibration_data[:, 5].transpose()])).transpose()
     green_data = green_data[green_data[:, 1].argsort()]
-    blue_data = np.array(([calibration_data[:, 2].transpose()] + [calibration_data[:, 7].transpose()])).transpose()
+    blue_data = np.array(([calibration_data[:, 2].transpose()] +
+                          [calibration_data[:, 7].transpose()])).transpose()
     blue_data = blue_data[blue_data[:, 1].argsort()]
 
     red_cs = inter.CubicSpline(red_data[:, 1], red_data[:, 0])
