@@ -193,7 +193,7 @@ def crop_rot(path: str) -> list[np.ndarray]:
     all_image = import_tif(path)
     all_images_sliced = slice_image(all_image)
     all_images_rotated = rotate(all_images_sliced)
-    all_images_smoothed = (smooth(all_images_rotated) + 1)*256 - 1
+    all_images_smoothed = smooth(all_images_rotated)
     return all_images_smoothed
 
 if __name__ == "__main__":

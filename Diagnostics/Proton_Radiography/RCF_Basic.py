@@ -701,7 +701,7 @@ def convert_dpi_to_m(dpi, units="mm"):
 
 # %% Plotting functions
 
-def plot_data(data, title=None, colour=None, cbar_label=None, cmap="rainbow", 
+def plot_data(data, title=None, colour=None, cbar_label=None, cmap="rainbow",
               dpi=300, logc=False, save=False):
     '''
     Generic function for plotting RGB images.
