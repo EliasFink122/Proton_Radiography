@@ -4,6 +4,15 @@ Created on Wed Jul 03 2024
 @author: Elias Fink (elias.fink22@imperial.ac.uk)
 
 Converting RGB images into doses.
+
+Methods:
+    interpolate_calibration:
+        imports calibration files
+        takes all calibration data and interpolates it for given material
+        can be used for converting RGB value to dose
+    convert_to_dose:
+        takes whole image and converts each pixel to dose value
+        makes use of RCF_Image_Crop.crop_rot method
 """
 
 import RCF_Image_Crop as ic

@@ -4,6 +4,14 @@ Created on Wed Jul 03 2024
 @author: Elias Fink (elias.fink22@imperial.ac.uk)
 
 Convert dose images to proton energy spectrum curve and fit Maxwellian to extract temperature
+
+Methods:
+    calc_active_layer_mass:
+        determines mass of measured layer (deposited energy = dose * mass)
+        returns mass in kg
+    deposited_energy:
+        uses dose and mass to determine total deposited energy in layer
+        uses RCF_Dose.convert_to_dose method
 """
 
 import RCF_Dose as dose
@@ -20,7 +28,7 @@ def calc_active_layer_mass(dpi: int, material: str) -> float:
         material: material of stack layer
 
     Returns:
-        mass of active layer
+        mass of active layer in kg
     '''
     px_size_m = 25400e-6/dpi
     px_area_m2 = px_size_m**2

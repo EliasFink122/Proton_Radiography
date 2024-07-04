@@ -4,6 +4,21 @@ Created on Mon Jul 01 2024
 @author: Elias Fink (elias.fink22@imperial.ac.uk)
 
 Cropping and rotating RCF stack images from initial scan
+
+Methods:
+    import_tif:
+        imports .tif file with given path as numpy array of RGB values
+        cleans image by making all bright (mean of RGB > 240) pixels to white
+    slice_image:
+        slices raw image into stack layers
+        cleans up by slicing each piece twice using contrast from background
+    rotate:
+        rotates image until correctly oriented
+        cleans up white spots in image again
+    smooth:
+        smooths rounding errors in image to make usable
+    crop_rot:
+        combines all steps for full use
 """
 import numpy as np
 from PIL import Image

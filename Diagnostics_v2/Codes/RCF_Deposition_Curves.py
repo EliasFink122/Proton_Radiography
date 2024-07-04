@@ -4,10 +4,27 @@ Created on Wed Jul 03 2024
 @author: Elias Fink (elias.fink22@imperial.ac.uk)
 
 Using stopping power data to match layers to energies of protons.
+
+Methods:
+    get_mass_stopping_power:
+        imports stopping power data
+        extracts information on proton energy to stopping power of particular material
+    get_target_density:
+        determines density of target layer
+    linear_stopping_power:
+        converts mass stopping power to linear stopping power
+    layer_EBT3:
+        builds stack layer with active EBT3
+    layer_HDV2:
+        builds stack layer with active HDV2
+    build_layers:
+        get all layers in stack (not just active)
+        include filter layers
 """
 
 import RCF_Dose as dose
 import numpy as np
+import pandas as pd
 import astropy.units as units
 from plasmapy.diagnostics.charged_particle_radiography.detector_stacks import Layer, Stack
 
@@ -154,3 +171,38 @@ def layer_HDV2():
             Layer(97 * units.um, *sub_stopping_energy_power, active=False),]
 
     return HDV2
+
+def build_layers(project: str, shot: str) -> list[str]:
+    '''
+    Build up all layers of given stack design
+    
+    Args:
+        project: project of interest
+        shot: shot of interest
+
+    Returns:
+        all layers (not just active layers)
+    '''
+    path = dose.ROOTDIR + "/Data/" + project + "/Shot" + shot + "/RCF_Stack_Design.csv"
+    stack_design = pd.read_csv(path, sep = ',')
+
+    stack_material = stack_design[:][0]
+    stack_filters = stack_design[:][2:4]
+
+    layers = []
+    for i, material in enumerate(stack_material):
+        if material is np.nan:
+            print(f"{i+1} RCF layers in stack.")
+            break
+
+        if stack_filters[0][i].count("/")>0: # multiple filters
+            n_filters = stack_filters[0][i].count("/")+1
+            layer_filters = stack_filters[0][i].split("/")
+            layer_filters_thickness = stack_filters[1][i].split("/")
+            for j in range(n_filters):
+                layers.append([layer_filters[j], layer_filters_thickness[j]])
+        else:
+            layers.append([stack_filters[0][i], stack_filters[1][i]])
+        layers.append([material])
+
+    return layers
