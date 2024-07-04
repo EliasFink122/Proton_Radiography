@@ -24,6 +24,12 @@ Methods:
         create plasmapy Stack object with all layers
     calc_energy_bands:
         determine energy bands from stack
+    get_deposition_curves:
+        calculate deposition curves for relevant stack
+    plot_stopping_power:
+        plot stopping power vs energy for material
+    plot_deposition curves:
+        plot possible propagation through material with deposition marked
 """
 
 import RCF_Dose as dose
@@ -336,7 +342,7 @@ def calc_energy_bands(energy, deposition, normalise: bool, mode="frac-max",
         return energy_bands, energy_spread
     return energy_bands
 
-def get_deposition_curves(project: str, shot: str, design: str, energy_range_MeV=[1,40],
+def get_deposition_curves(project: str, shot: str, energy_range_MeV=[1,40],
                           dE = 0.00625, dx = 0.025, return_active=True, output_eband=False, plot=True):
     '''
     Get energy deposition curves for an RCF stack
@@ -407,7 +413,7 @@ def plot_stopping_power(materials, nplot=1):
 
     for material in materials:
         stopping_power = get_mass_stopping_power(material)
-        target_density = get_target_density(material) * u.g / u.cm**3
+        target_density = get_target_density(material) * units.g / units.cm**3
 
         ax_SP.plot(stopping_power[:,0], stopping_power[:,1], label=material)
         if nplot != 1:
