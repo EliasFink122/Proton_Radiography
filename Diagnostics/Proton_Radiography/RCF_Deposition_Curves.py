@@ -2,7 +2,7 @@
 """
 Created on Thu Oct 26 15:53:22 2023
 
-@author: add525
+@author: Adam Dearling (add525@york.ac.uk)
 
 Utilises the PlasmaPy library to generate energy deposition curves.
 """
@@ -54,13 +54,13 @@ def get_mass_stopping_power(material, database="SRIM"):
         data = np.loadtxt(file, skiprows=8)
 
     elif database == "SRIM": # Have to manually handle formatting
-        with open(file) as f:
+        with open(file, mode = 'r', encoding = 'utf-8') as f:
             data_raw = f.readlines()
             str_start = '-----------  ---------- ---------- ----------  ----------  ----------\n'
             str_end = '-----------------------------------------------------------\n'
             try:
                 row_start = data_raw.index(str_start)
-            except:
+            except IndexError:
                 row_start = data_raw.index('  ---' + str_start)
             row_end = data_raw.index(str_end)
             data_raw = data_raw[row_start+1:row_end]
@@ -125,7 +125,6 @@ def linear_stopping_power(material):
     stopping_energy = stopping_mass[:,0] * u.MeV # Convert corresponding energy to astropy units
 
     return stopping_energy, stopping_power
-
 
 def layer_EBT3():
     '''
@@ -314,7 +313,7 @@ def calc_energy_bands(energy, deposition, normalise, mode="frac-max", frac=1/np.
 
 def get_deposition_curves(energy_range_MeV=[1,40], input_layers=None, project=None,
                           shot=None, design=None, dE = 0.00625, dx = 0.025,
-                          normalise=False, normalise_type=None, return_active=True, 
+                          normalise=False, normalise_type=None, return_active=True,
                           output_eband=False, plot=True):
     '''
     Get energy deposition curves for an RCF stack
@@ -342,7 +341,7 @@ def get_deposition_curves(energy_range_MeV=[1,40], input_layers=None, project=No
                                                     normalise=normalise,
                                                     normalise_type=normalise_type)
     except KeyError:
-        deposition_curves = stack.deposition_curves(energy, dx=dx * u.um, 
+        deposition_curves = stack.deposition_curves(energy, dx=dx * u.um,
                                                     return_only_active=return_active)
         normalise = True
 
