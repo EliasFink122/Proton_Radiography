@@ -27,6 +27,7 @@ Methods:
 """
 
 import RCF_Dose as dose
+import scipy.constants as const
 import RCF_Plotting as pm
 import numpy as np
 import pandas as pd
@@ -378,3 +379,93 @@ def get_deposition_curves(project: str, shot: str, design: str, energy_range_MeV
                                ebands = ebands, normalise = False)
 
     return deposition_curves, energy
+
+def plot_stopping_power(materials, nplot=1):
+    '''
+    Plot the stopping power as a function of proton energy.
+
+    @author: Adam Dearling (add525@york.ac.uk)
+    @edited: Elias Fink (elias.fink22@imperial.ac.uk)
+    
+    Args:
+        materials: materials in stack
+        nplot: number of plots
+    '''
+
+    if isinstance(materials, str):
+        materials = [materials]
+    elif not isinstance(materials, list):
+        raise TypeError("Materials should be either desired string or list.")
+
+    fig, ax = pm.plot_figure_axis("small", nplot)
+    if nplot == 1:
+        ax_SP = ax
+        ax = [ax]
+    else:
+        ax_SP = ax[0]
+        ax_SPrho = ax[1]
+
+    for material in materials:
+        stopping_power = get_mass_stopping_power(material)
+        target_density = get_target_density(material) * u.g / u.cm**3
+
+        ax_SP.plot(stopping_power[:,0], stopping_power[:,1], label=material)
+        if nplot != 1:
+            ax_SPrho.plot(stopping_power[:,0], stopping_power[:,1] * units.MeV * unts.cm**2 / units.g * target_density,
+                          label=material)
+
+    ax_SP.set_ylabel(r"Stopping Power (MeV cm$^2$ g$^{-1}$)")
+    if nplot != 1:
+        ax_SPrho.set_ylabel(r"Stopping Power (MeV cm$^{-1}$)")
+    for axi in ax:
+        axi.set_xlabel(r"E$_\mathrm{k}$ (MeV)")
+        axi.set_yscale("log")
+        axi.set_xscale("log")
+        axi.set_xlim(xmin=1e-2)
+    ax[-1].legend()
+
+    fig.tight_layout()
+
+def plot_deposition_curves(stack, energy, deposition_curves, rcf_material=None,
+                           ebands=None, normalise=True):
+    '''
+    Plot deposition curves
+
+    @author: Adam Dearling (add525@york.ac.uk)
+    @edited: Elias Fink (elias.fink22@imperial.ac.uk)
+
+    Args:
+        stack: stack object
+        energy: proton energy bands
+        deposition_curves: deposition curves from above method
+    '''
+
+    fig, ax = pm.plot_figure_axis("small", 1, ratio=[1,1])
+
+    if not normalise:
+        deposition_curves = (deposition_curves / const.elementary_charge) / 1e6
+
+    plot_max = round(np.amax(deposition_curves),
+                     -int(np.floor(np.log10(abs(np.amax(deposition_curves))))))*1.2
+
+    for layer in range(stack.num_active):
+        label = f"Layer {layer+1}"
+        if rcf_material is not None:
+            label = label + f" ({rcf_material[layer]})"
+
+        ax.plot(energy, deposition_curves[layer, :], label=label)
+
+        if ebands is not None:
+            ax.fill_betweenx([0,plot_max], ebands[layer,0], ebands[layer,1], alpha=0.25)
+
+    # ax.set_title("Energy deposition curves")
+    ax.set_xlabel("$E_\mathrm{k}$ (MeV)")
+    if normalise:
+        ax.set_ylabel("Normalized energy deposition curve")
+    else:
+        ax.set_ylabel("Energy deposition curve (MeV)")
+    ax.set_xlim(xmin=0, xmax=max(energy))
+    ax.set_ylim(ymin=0, ymax=plot_max)
+    ax.legend()
+
+    fig.tight_layout()
