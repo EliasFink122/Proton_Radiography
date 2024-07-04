@@ -1,5 +1,6 @@
 Process: raw data -> cropping and rotating -> converting to dose -> converting to spectrum
 
+- Specify full path of Diagnostics_v2 root directory in RCF_Dose.py
 - Put all raw data and stack details into Data folder.
 - Use RCF_Image_Crop.py to just crop and rotate images and export them as needed.
 - Use RCF_Dose.py to convert all stack layers into dose pictures.

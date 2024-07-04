@@ -21,7 +21,9 @@ import numpy as np
 def calc_active_layer_mass(dpi: int, material: str) -> float:
     '''
     Calculate the mass of the active layer in one pixel
+
     @author: Adam Dearling (add525@york.ac.uk)
+    @edited: Elias Fink (elias.fink22@imperial.ac.uk)
     
     Args:
         dpi: resolution of images
