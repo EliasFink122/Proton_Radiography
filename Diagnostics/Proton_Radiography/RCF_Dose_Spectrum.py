@@ -127,7 +127,7 @@ def log10_function(velocity_MeV, n_perm3, T_MeV):
 
     function = "probability"
 
-    if function == "distribution":    
+    if function == "distribution":
         maxwellian = maxwellian_distribution(velocity_MeV, n_perm3, T_MeV)
 
     elif function == "probability":
@@ -182,7 +182,7 @@ def get_dNdE_spectrum_BPD(E, R_stack, dE_stack, D_stack, D_error=None):
     dNdE_stack = np.zeros(nlayers)
 
     # Iterate through layers
-    for nlayer in range(nlayers):        
+    for nlayer in range(nlayers):
 
         dNdE_stack[nlayer] = calc_dNdE_BPD(E, R_stack[nlayer], dE_stack[nlayer,0],
                                            dE_stack[nlayer,1], D_stack[nlayer])
@@ -222,7 +222,7 @@ def interp_spectrum_deposition(E_in, R_in, bragg_in, dNdE_in, test=False):
     return E_dep
 
 
-def get_dNdE_spectrum_iter(E, R_stack, dE_stack, D_stack, D_error=None, tol=0.05, 
+def get_dNdE_spectrum_iter(E, R_stack, dE_stack, D_stack, D_error=None, tol=0.05,
                            itmax=100, N_n=1e12, T_n=None, cutoff_n=None):
     '''
     Get dNdE for a stack iteratively.
