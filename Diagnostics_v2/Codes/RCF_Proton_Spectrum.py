@@ -94,7 +94,6 @@ def calc_dNdE_BPD(E, R, E1, E2, D) -> float:
     
     Returns:
         dNdE value
-    
     '''
 
     # Energy band over which integration should be performed
@@ -131,7 +130,6 @@ def get_dNdE_spectrum_BPD(E, R_stack, dE_stack, D_stack, D_error=None) -> list[f
 
     # Iterate through layers
     for nlayer in range(nlayers):
-
         dNdE_stack[nlayer] = calc_dNdE_BPD(E, R_stack[nlayer], dE_stack[nlayer,0],
                                            dE_stack[nlayer,1], D_stack[nlayer])
 
@@ -270,12 +268,12 @@ def get_dNdE_spectrum_iter(E, R_stack, dE_stack, D_stack, tol=0.05,
 
 def get_proton_spectrum(stack_energy, deposition_curves, deposition_energy_MeV,
                         stack_layers=None, stack_energy_error=None, method="BPD",
-                        tol=0.05, T_iter= None , cutoff_iter=None, plot=False):
+                        tol=0.05, T_iter= None, cutoff_iter=None, plot=False):
     '''
     Calculate the proton spectrum using the Bragg peak dominated method.
 
     @author: Adam Dearling (add525@york.ac.uk)
-    
+
     Args:
         stack_energy: in J
         deposition_curves: in J
@@ -353,8 +351,8 @@ def spectrum_fit(energy_MeV, stack_bragg_MeV, stack_dNdE, error=False, plot=Fals
         ax.set_yscale("log")
         fig.tight_layout()
 
-    popt, pcov = op.curve_fit(pm.log10_function, stack_bragg_MeV[:-1], np.log10(stack_dNdE),
-                        p0=guess, bounds=(lower_bound, upper_bound))
+    popt, pcov = op.curve_fit(pm.log10_function, stack_bragg_MeV, np.log10(stack_dNdE),
+                        p0=guess, bounds=(lower_bound, upper_bound), maxfev = 10000)
     pstd = np.diag(pcov)
 
     dNdE_fit = np.power(10, pm.log10_function(energy_MeV, *popt))
@@ -448,7 +446,8 @@ if __name__ == "__main__":
         design = None
         shot = "001"
         stack = "18"
-        layers = ["B","C","D","E","F","G","H","I","J","K","L"]
+        layers = ["A", "B", "C", "D", "E", "F", "G", "H", "I",
+                  "J", "K", "L", "M", "N", "O", "P", "Q"]
         suffix = None
         edge = [100,20]
         scanner = "Epson_12000XL"
@@ -462,15 +461,15 @@ if __name__ == "__main__":
                                                             project=project, shot=shot,
                                                             dE=0.00625, dx=0.25,
                                                             plot=True)
+
     stack_dose = dose.convert_to_dose(project, shot) # Dose in Grays
 
-    stack_energy = [deposited_energy(layer_dose, dpi)
-                    for layer_dose in stack_dose] # Energy in J, tuple including error
+    stack_energy = deposited_energy(project, shot) # Energy in J, tuple including error
 
-    stack_energy_total = np.array([np.sum(layer_energy[0]) for layer_energy in stack_energy]) # Energy in J
-    stack_error_total = np.array([np.sum(layer_energy[1]) for layer_energy in stack_energy])
+    stack_energy_total = np.array([np.sum(layer_energy) for layer_energy in stack_energy]) # Energy in J
+    # stack_error_total = np.array([np.sum(layer_energy[1]) for layer_energy in stack_energy])
 
-    BPD_dNdE, stack_bragg, BPD_fit = get_proton_spectrum(stack_energy_total, deposition_curves, 
+    BPD_dNdE, stack_bragg, BPD_fit = get_proton_spectrum(stack_energy_total, deposition_curves,
                                                         deposition_energy, stack_layers=layers, method = "BPD")#,
                                                         # stack_energy_error=stack_error_total)
 
