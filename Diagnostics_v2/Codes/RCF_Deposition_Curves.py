@@ -40,7 +40,7 @@ import pandas as pd
 import astropy.units as units
 from plasmapy.diagnostics.charged_particle_radiography.detector_stacks import Layer, Stack
 
-def get_mass_stopping_power(material: str, database="SRIM") -> np.ndarray[np.ndarray[float, float]]:
+def get_mass_stopping_power(material: str, database="SRIM"):
     '''
     Get stopping power data from file
     @author: Adam Dearling (add525@york.ac.uk)
@@ -69,7 +69,7 @@ def get_mass_stopping_power(material: str, database="SRIM") -> np.ndarray[np.nda
             str_end = '-----------------------------------------------------------\n'
             try:
                 row_start = data_raw.index(str_start)
-            except IndexError:
+            except ValueError:
                 row_start = data_raw.index('  ---' + str_start)
             row_end = data_raw.index(str_end)
             data_raw = data_raw[row_start+1:row_end]
@@ -119,7 +119,7 @@ def get_target_density(material: str, database="SRIM") -> float:
 
     return target_density
 
-def linear_stopping_power(material: str) -> tuple[np.ndarray[float], np.ndarray[float]]:
+def linear_stopping_power(material: str):
     '''
     Get the linear stopping power, as SRIM/PSTAR data is for mass stopping power
     
@@ -200,8 +200,8 @@ def build_layers(project: str, shot: str) -> list[str]:
     path = dose.ROOTDIR + "/Data/" + project + "/Shot" + shot + "/RCF_Stack_Design.csv"
     stack_design = pd.read_csv(path, sep = ',')
 
-    stack_material = stack_design[:][0]
-    stack_filters = stack_design[:][2:4]
+    stack_material = stack_design.transpose()[0].tolist()[1:]
+    stack_filters = [stack_design.transpose()[2].tolist()[1:]] + [stack_design.transpose()[3].tolist()[1:]]
 
     layers = []
     for i, material in enumerate(stack_material):
@@ -379,7 +379,7 @@ def get_deposition_curves(project: str, shot: str, energy_range_MeV=[1,40],
         path = dose.ROOTDIR + "/Data/" + project + "/Shot" + shot + "/RCF_Stack_Design.csv"
         stack_design = pd.read_csv(path, sep = ',')
 
-        rcf_material = stack_design[:][0]
+        rcf_material = stack_design.transpose()[0].tolist()[1:]
 
         plot_deposition_curves(stack, energy, deposition_curves, rcf_material = rcf_material,
                                ebands = ebands, normalise = False)

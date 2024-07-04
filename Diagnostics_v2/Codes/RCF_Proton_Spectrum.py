@@ -17,8 +17,10 @@ Methods:
 import RCF_Dose as dose
 import RCF_Deposition_Curves as dc
 import RCF_Plotting as pm
+import scipy.optimize as op
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy.constants import elementary_charge, proton_mass as e, m_p
 
 def calc_active_layer_mass(dpi: int, material: str) -> float:
@@ -78,61 +80,6 @@ def deposited_energy(project: str, shot: str) -> list[float]:
         deposited_energies.append(np.sum(pixel_energies))
 
     return deposited_energies
-
-def maxwellian_dist_1d(speed, n, T) -> float:
-    '''
-    Maxwellian distribution function in 1D
-
-    Args:
-        speed: kinetic energy in MeV
-        n: number of protons
-        T: temperature kB*T in MeV
-
-    Returns:
-        value of Maxwell-Boltzmann distribution
-    '''
-    dist = n * np.power(2*np.pi*T*e*1e6/m_p, -1/2) * np.exp(-speed/T)
-    return dist
-
-def maxwellian_prob_1d(speed, n, T) -> float:
-    '''
-    Maxwellian probability function in 1D
-    
-    Args:
-        speed: kinetic energy in MeV
-        n: number of protons
-        T: temperature kB*T in MeV
-
-    Returns:
-        value of Maxwell-Boltzmann probability
-    '''
-    speed_in_joules = speed * 1e6 * e
-    dist = maxwellian_dist_1d(speed, n, T)
-    prob = (4 * np.pi * 1 / m_p) * np.sqrt(2 * speed_in_joules / m_p) * dist
-    return prob
-
-def log10_function(speed, n, T) -> float:
-    '''
-    Logarithm of Maxwellian distribution or probability
-
-    Args:
-        speed: kinetic energy in MeV
-        n: number of protons
-        T: temperature kB*T in MeV
-
-    Returns:
-        log10 of Maxwellian
-    '''
-
-    function = "probability"
-
-    if function == "distribution":
-        maxwellian = maxwellian_dist_1d(speed, n, T)
-    elif function == "probability":
-        maxwellian = maxwellian_prob_1d(speed, n, T)
-    maxwellian_log10 = np.log10(maxwellian)
-
-    return maxwellian_log10
 
 def calc_dNdE_BPD(E, R, E1, E2, D) -> float:
     '''
@@ -243,7 +190,7 @@ def get_dNdE_spectrum_iter(E, R_stack, dE_stack, D_stack, tol=0.05,
         dNdE_stack[-1] = calc_dNdE_BPD(E, R_stack[-1], dE_stack[-1,0], dE_stack[-1,1],
                                        D_stack[-1])
     else:
-        dNdE_guess = maxwellian_prob_1d(E, N_n, T_n)
+        dNdE_guess = pm.maxwellian_prob_1d(E, N_n, T_n)
 
         # Energy coordinates that integral will be calculated between
         En_arg = np.argmin(abs(bragg_stack[-1]-E)) # Position of final bragg peak
@@ -348,7 +295,7 @@ def get_proton_spectrum(stack_energy, deposition_curves, deposition_energy_MeV,
 
     # Get list of layer numbers, so correct curves can be extracted from the stack if required
     if stack_layers is not None:
-        layer_numbers = [rcf.letter_to_num(layer)-1 for layer in stack_layers]
+        layer_numbers = [pm.letter_to_num(layer)-1 for layer in stack_layers]
         stack_bragg_MeV = bragg_peak_MeV[layer_numbers]
         stack_deposition = deposition_curves[layer_numbers, :]
         stack_ebands_MeV = deposition_ebands_MeV[layer_numbers, :]
@@ -369,10 +316,171 @@ def get_proton_spectrum(stack_energy, deposition_curves, deposition_energy_MeV,
     stack_fit = spectrum_fit(deposition_energy_MeV, stack_bragg_MeV, stack_dNdE,
                              error=error, plot=plot)
 
-    # print(stack_fit)
-
     return stack_dNdE, stack_bragg_MeV, stack_fit
+
+def spectrum_fit(energy_MeV, stack_bragg_MeV, stack_dNdE, error=False, plot=False,
+                 test=False):
+    '''
+    Fit a spectrum to the dose data and returns the temperature.
+
+    @author: Adam Dearling (add525@york.ac.uk)
+    @edited: Elias Fink (elias.fink22@imperial.ac.uk)
+    
+    Args:
+        log10_function: take inputs as MeV
+    log10_function takes inputs in MeV, output should be in J units so stack_dNdE
+    should be in J?
+    '''
+
+   # log10_function = np.nan_to_num(log10_function, nan=25)
+
+
+    if error:
+        stack_dNdE_error = stack_dNdE[1]
+        stack_dNdE = stack_dNdE[0]
+
+    guess = [1e12, 10]
+    lower_bound = [-np.inf, -np.inf]
+    upper_bound = [np.inf, np.inf]
+
+    if test:
+        fig, ax = pm.plot_figure_axis()
+        ax.scatter(stack_bragg_MeV, stack_dNdE*e*1e6)
+        ax.plot(energy_MeV, np.power(10, pm.log10_function(energy_MeV, *guess))*e*1e6)
+        ax.set_xlabel("$E_\mathrm{k}$ (MeV)")
+        ax.set_ylabel("$dN/dE$ (MeV$^{-1}$)")
+        ax.set_xlim(xmin=0, xmax=np.round(stack_bragg_MeV[-1]+5,-1))
+        ax.set_yscale("log")
+        fig.tight_layout()
+
+    popt, pcov = op.curve_fit(pm.log10_function, stack_bragg_MeV[:-1], np.log10(stack_dNdE),
+                        p0=guess, bounds=(lower_bound, upper_bound))
+    pstd = np.diag(pcov)
+
+    dNdE_fit = np.power(10, pm.log10_function(energy_MeV, *popt))
+
+    # print(pcov)
+    print(f"Temp = {popt[1]} +- {pstd[1]} MeV")
+    print(f"Number = {popt[0]} +- {pstd[0]} particles")
+
+    if plot:
+        fig, ax = pm.plot_figure_axis()
+        if error:
+            ax.errorbar(stack_bragg_MeV, stack_dNdE*e*1e6,
+                        yerr=stack_dNdE_error*e*1e6, fmt='x')
+        else:
+            ax.scatter(stack_bragg_MeV, stack_dNdE*e*1e6)
+        ax.plot(energy_MeV, dNdE_fit*e*1e6)
+        ax.set_xlabel("$E_\mathrm{k}$ (MeV)")
+        ax.set_ylabel("$dN/dE$ (MeV$^{-1}$)")
+        ax.set_xlim(xmin=0, xmax=np.round(stack_bragg_MeV[-1]+5,-1))
+        ax.set_yscale("log")
+        fig.tight_layout()
+
+    return popt, pstd
+
+def plot_spectrum(x, y, label=None, x_2=None, y_2=None, label_2=None,
+                  x_line=None, y_line=None, y_line_fit=None, label_line=None,
+                  y_line_2=None, y_line_fit_2=None, label_line_2=None,
+                  y_unit="perMeV"):
+    '''
+    Plot the proton spectrum.
+    
+    By default x will be in MeV, while y will be in per J (laugh if not).
+    '''
+
+    cmap = plt.get_cmap("tab10")
+
+    if y_unit == "perMeV":
+        scale = e*1e6
+    elif y_unit == "perJ":
+        scale = 1
+
+    if y_line_fit is not None:
+        y_line = pm.maxwellian_prob_1d(x_line, *y_line_fit[0])
+        y_line_p = pm.maxwellian_prob_1d(x_line, y_line_fit[0][0],
+                                          y_line_fit[0][1]+y_line_fit[1][1])
+        y_line_m = pm.maxwellian_prob_1d(x_line, y_line_fit[0][0],
+                                          y_line_fit[0][1]-y_line_fit[1][1])
+    if y_line_fit_2 is not None:
+        y_line_2 = pm.maxwellian_prob_1d(x_line, *y_line_fit_2[0])
+        y_line_p_2 = pm.maxwellian_prob_1d(x_line, y_line_fit_2[0][0],
+                                            y_line_fit_2[0][1]+y_line_fit_2[1][1])
+        y_line_m_2 = pm.maxwellian_prob_1d(x_line, y_line_fit_2[0][0],
+                                            y_line_fit_2[0][1]-y_line_fit_2[1][1])
+
+    fig, ax = pm.plot_figure_axis()
+
+    ax.scatter(x, y*scale, label=label, s=50)
+    if y_2 is not None and x_2 is not None:
+        ax.scatter(x_2, y_2*scale, label=label_2, marker="x", s=50)
+    if x_line is not None and y_line is not None:
+        ax.plot(x_line, y_line*scale, label=label_line, color="k", linestyle="--", zorder=0)
+        if y_line_fit is not None:
+            ax.fill_between(x_line, y_line_m*scale, y_line_p*scale, color=cmap(0), alpha=0.5)
+    if x_line is not None and y_line_2 is not None:
+        ax.plot(x_line, y_line_2*scale, label=label_line, color="k", linestyle="--", zorder=0)
+        if y_line_fit is not None:
+            ax.fill_between(x_line, y_line_m_2*scale, y_line_p_2*scale, color=cmap(1), alpha=0.5)
+
+    ax.set_xlabel("$E_\mathrm{k}$ (MeV)")
+    if y_unit == "perMeV":
+        ax.set_ylabel("$dN/dE$ (MeV$^{-1}$)")
+    elif y_unit == "perJ":
+        ax.set_xlabel("$dN/dE$ (MeV$^{-1}$)")
+
+    ax.set_xlim(xmin=0, xmax=np.round(x[-1]+5,-1))
+
+    ax.set_yscale("log")
+
+    ax.set_title("shot" + str(shot))
+    if label is not None:
+        ax.legend()
+
+    fig.tight_layout()
 
 
 if __name__ == "__main__":
-    print(deposited_energy("Carroll_2023", "001"))
+    project = "Carroll_2023"
+
+    if project == "Carroll_2023":
+        e_range = [1,120]
+        design = None
+        shot = "001"
+        stack = "18"
+        layers = ["B","C","D","E","F","G","H","I","J","K","L"]
+        suffix = None
+        edge = [100,20]
+        scanner = "Epson_12000XL"
+        material_type = None
+        OD = False
+        clean = True
+        channels = [1,1,1]
+        dpi = 300
+
+    deposition_curves, deposition_energy = dc.get_deposition_curves(energy_range_MeV=e_range,
+                                                            project=project, shot=shot,
+                                                            dE=0.00625, dx=0.25,
+                                                            plot=True)
+    stack_dose = dose.convert_to_dose(project, shot) # Dose in Grays
+
+    stack_energy = [deposited_energy(layer_dose, dpi)
+                    for layer_dose in stack_dose] # Energy in J, tuple including error
+
+    stack_energy_total = np.array([np.sum(layer_energy[0]) for layer_energy in stack_energy]) # Energy in J
+    stack_error_total = np.array([np.sum(layer_energy[1]) for layer_energy in stack_energy])
+
+    BPD_dNdE, stack_bragg, BPD_fit = get_proton_spectrum(stack_energy_total, deposition_curves, 
+                                                        deposition_energy, stack_layers=layers, method = "BPD")#,
+                                                        # stack_energy_error=stack_error_total)
+
+
+    iter_dNdE, __, iter_fit = get_proton_spectrum(stack_energy_total, deposition_curves,
+                                                deposition_energy, stack_layers=layers,
+                                                method="iter", T_iter= BPD_fit[0][0], cutoff_iter = 59) #T_iter=6.754, cutoff_iter=23.887)
+                                                #T_iter=11.779, cutoff_iter=53.7813)
+
+
+    plot_spectrum(stack_bragg, BPD_dNdE, label="BPD", x_2=stack_bragg, y_2=iter_dNdE,
+                label_2="iter.", x_line=deposition_energy, y_line_fit=BPD_fit,
+                y_line_fit_2=iter_fit)

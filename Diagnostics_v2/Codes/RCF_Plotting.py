@@ -20,6 +20,7 @@ Methods:
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.constants import elementary_charge, proton_mass as e, m_p
 
 def setup_fontsize(size):
     '''
@@ -232,6 +233,72 @@ def plot(data, data_x=None, size="small", nplots=1, shape=1, ratio="square", out
         return ax
     return 0
 
+def maxwellian_dist_1d(speed, n, T) -> float:
+    '''
+    Maxwellian distribution function in 1D
+
+    Args:
+        speed: kinetic energy in MeV
+        n: number of protons
+        T: temperature kB*T in MeV
+
+    Returns:
+        value of Maxwell-Boltzmann distribution
+    '''
+    dist = n * np.power(2*np.pi*T*e*1e6/m_p, -1/2) * np.exp(-speed/T)
+    return dist
+
+def maxwellian_prob_1d(speed, n, T) -> float:
+    '''
+    Maxwellian probability function in 1D
+    
+    Args:
+        speed: kinetic energy in MeV
+        n: number of protons
+        T: temperature kB*T in MeV
+
+    Returns:
+        value of Maxwell-Boltzmann probability
+    '''
+    speed_in_joules = speed * 1e6 * e
+    dist = maxwellian_dist_1d(speed, n, T)
+    prob = (4 * np.pi * 1 / m_p) * np.sqrt(2 * speed_in_joules / m_p) * dist
+    return prob
+
+def log10_function(speed, n, T) -> float:
+    '''
+    Logarithm of Maxwellian distribution or probability
+
+    Args:
+        speed: kinetic energy in MeV
+        n: number of protons
+        T: temperature kB*T in MeV
+
+    Returns:
+        log10 of Maxwellian
+    '''
+
+    function = "probability"
+
+    if function == "distribution":
+        maxwellian = maxwellian_dist_1d(speed, n, T)
+    elif function == "probability":
+        maxwellian = maxwellian_prob_1d(speed, n, T)
+    maxwellian_log10 = np.log10(maxwellian)
+
+    return maxwellian_log10
+
+def letter_to_num(letter) -> int:
+    '''
+    Convert a letter to number (where A=1, B=2 etc.)
+
+    Args:
+        letter: any letter from A-Z
+
+    Returns:
+        number of letter in alphabet
+    '''
+    return ord(letter)-64
 
 if __name__ == "__main__":
 
