@@ -594,7 +594,7 @@ if 1:
                                             channels=channels, plot=False, plot_output=True) # Dose in Grays
 
     stack_energy = [get_deposited_energy(layer_dose, dpi, stack_materials[i],
-                                         dose_error=stack_error[i]) 
+                                         dose_error=stack_error[i])
                     for i, layer_dose in enumerate(stack_dose)] # Energy in J, tuple including error
 
     stack_energy_total = np.array([np.sum(layer_energy[0]) for layer_energy in stack_energy]) # Energy in J
