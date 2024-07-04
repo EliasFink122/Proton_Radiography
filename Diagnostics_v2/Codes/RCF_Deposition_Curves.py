@@ -22,6 +22,8 @@ Methods:
         include filter layers
     build_stack:
         create plasmapy Stack object with all layers
+    calc_energy_bands:
+        determine energy bands from stack
 """
 
 import RCF_Dose as dose
@@ -332,3 +334,47 @@ def calc_energy_bands(energy, deposition, normalise: bool, mode="frac-max",
     if ret_espread:
         return energy_bands, energy_spread
     return energy_bands
+
+def get_deposition_curves(project: str, shot: str, design: str, energy_range_MeV=[1,40],
+                          dE = 0.00625, dx = 0.025, return_active=True, output_eband=False, plot=True):
+    '''
+    Get energy deposition curves for an RCF stack
+
+    @author: Adam Dearling (add525@york.ac.uk)
+    @edited: Elias Fink (elias.fink22@imperial.ac.uk)
+    
+    Args:
+        dE: energy binning in MeV
+        dx: spatial resolution in um
+    
+    Returns:
+        deposition curves
+        respective energies
+    '''
+
+    stack = build_stack(project, shot)
+
+    energy = np.arange(*energy_range_MeV, dE) * units.MeV
+
+    # Try/except in case modified plasmapy version is not used.
+    deposition_curves = stack.deposition_curves(energy, dx = dx * units.um,
+                                                return_only_active=return_active)
+
+    energy = energy.value
+
+    if plot:
+        # Get energy bands - this was in Joules rather than eV (leads to plot bug) in plasmapy
+        # ebands = stack.energy_bands(energy_range_MeV * u.MeV, dE * u.MeV, dx=dx * u.um,
+        #                             return_only_active=return_active)
+        ebands = calc_energy_bands(energy, deposition_curves, normalise = False,
+                                   output = output_eband)
+
+        path = dose.ROOTDIR + "/Data/" + project + "/Shot" + shot + "/RCF_Stack_Design.csv"
+        stack_design = pd.read_csv(path, sep = ',')
+
+        rcf_material = stack_design[:][0]
+
+        plot_deposition_curves(stack, energy, deposition_curves, rcf_material = rcf_material,
+                               ebands = ebands, normalise = False)
+
+    return deposition_curves, energy
