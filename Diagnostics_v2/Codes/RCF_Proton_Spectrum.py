@@ -21,7 +21,7 @@ import scipy.optimize as op
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.constants import elementary_charge, proton_mass as e, m_p
+from scipy.constants import elementary_charge as e
 
 def calc_active_layer_mass(dpi: int, material: str) -> float:
     '''
