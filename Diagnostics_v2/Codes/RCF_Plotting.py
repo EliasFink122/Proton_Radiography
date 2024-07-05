@@ -278,14 +278,14 @@ def log10_function(speed, n, T) -> float:
         log10 of Maxwellian
     '''
 
-    function = "probability"
+    function = "distribution"
 
     if function == "distribution":
         maxwellian = maxwellian_dist_1d(speed, n, T)
     elif function == "probability":
         maxwellian = maxwellian_prob_1d(speed, n, T)
-    maxwellian_log10 = np.log10(maxwellian)
 
+    maxwellian_log10 = np.log10(maxwellian)
     return maxwellian_log10
 
 def letter_to_num(letter) -> int:

@@ -191,20 +191,19 @@ def get_dNdE_spectrum_iter(E, R_stack, dE_stack, D_stack, tol=0.05,
         dNdE_guess = pm.maxwellian_prob_1d(E, N_n, T_n)
 
         # Energy coordinates that integral will be calculated between
-        En_arg = np.argmin(abs(bragg_stack[-1]-E)) # Position of final bragg peak
-        Ec_arg = np.argmin(abs(cutoff_n-E)) # Position of cutoff
+        Ec_arg = np.argmin(abs(bragg_stack[-1]-E)) # Position of final bragg peak
+        En_arg = np.argmin(abs(cutoff_n-E)) # Position of cutoff
 
         E_nc = E[En_arg:Ec_arg+1]
         R_nc = R_stack[-1, En_arg:Ec_arg+1]
         dNdE_nc = dNdE_guess[En_arg:Ec_arg+1]
-
         D_nc = interp_spectrum_deposition(E_nc, R_nc, E_nc, dNdE_nc)
 
         D_ratio = D_nc / D_stack[-1]
 
         print('D_RATIO', D_ratio)
 
-        if D_ratio == 0 :
+        if D_ratio == 0:
             D_ratio = 1
 
         its = 0
@@ -351,7 +350,7 @@ def spectrum_fit(energy_MeV, stack_bragg_MeV, stack_dNdE, error=False, plot=Fals
         ax.set_yscale("log")
         fig.tight_layout()
 
-    popt, pcov = op.curve_fit(pm.log10_function, stack_bragg_MeV, np.log10(stack_dNdE),
+    popt, pcov = op.curve_fit(pm.log10_function, stack_bragg_MeV[:12], np.log10(stack_dNdE*e*1e6)[:12],
                         p0=guess, bounds=(lower_bound, upper_bound), maxfev = 10000)
     pstd = np.diag(pcov)
 
@@ -483,3 +482,5 @@ if __name__ == "__main__":
     plot_spectrum(stack_bragg, BPD_dNdE, label="BPD", x_2=stack_bragg, y_2=iter_dNdE,
                 label_2="iter.", x_line=deposition_energy, y_line_fit=BPD_fit,
                 y_line_fit_2=iter_fit)
+
+    plt.show()

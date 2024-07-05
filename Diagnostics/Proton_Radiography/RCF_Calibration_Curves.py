@@ -191,7 +191,7 @@ def get_calibration(material, colour, scanner=None, material_type=None,
 
     if material_type is None:
         print("Using default RCF material type (HDV2=3, EBT3=5)")
-        if material == "HDV2": 
+        if material == "HDV2":
             material_type = "3"
         elif material == "EBT3":
             material_type = "5"
