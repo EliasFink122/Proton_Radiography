@@ -350,7 +350,7 @@ def spectrum_fit(energy_MeV, stack_bragg_MeV, stack_dNdE, error=False, plot=Fals
         ax.set_yscale("log")
         fig.tight_layout()
 
-    popt, pcov = op.curve_fit(pm.log10_function, stack_bragg_MeV[:12], np.log10(stack_dNdE*e*1e6)[:12],
+    popt, pcov = op.curve_fit(pm.log10_function, stack_bragg_MeV, np.log10(stack_dNdE*e*1e6),
                         p0=guess, bounds=(lower_bound, upper_bound), maxfev = 10000)
     pstd = np.diag(pcov)
 
@@ -472,12 +472,10 @@ if __name__ == "__main__":
                                                         deposition_energy, stack_layers=layers, method = "BPD")#,
                                                         # stack_energy_error=stack_error_total)
 
-
-    iter_dNdE, __, iter_fit = get_proton_spectrum(stack_energy_total, deposition_curves,
+    iter_dNdE, _, iter_fit = get_proton_spectrum(stack_energy_total, deposition_curves,
                                                 deposition_energy, stack_layers=layers,
                                                 method="iter", T_iter= BPD_fit[0][0], cutoff_iter = 59) #T_iter=6.754, cutoff_iter=23.887)
                                                 #T_iter=11.779, cutoff_iter=53.7813)
-
 
     plot_spectrum(stack_bragg, BPD_dNdE, label="BPD", x_2=stack_bragg, y_2=iter_dNdE,
                 label_2="iter.", x_line=deposition_energy, y_line_fit=BPD_fit,
