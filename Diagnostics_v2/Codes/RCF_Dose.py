@@ -41,7 +41,7 @@ def interpolate_calibration(scanner = "Epson_12000XL"):
         raise ValueError("No other scanner available.")
     hdv2_calibration_data = np.loadtxt(ROOTDIR + "/Calibration/" + calibration_path,
                                   skiprows = 2, delimiter = ',')
-    hdv_2red_data = np.array(([hdv2_calibration_data[:, 2].transpose()] +
+    hdv2_red_data = np.array(([hdv2_calibration_data[:, 2].transpose()] +
                          [hdv2_calibration_data[:, 3].transpose()])).transpose()
     hdv2_red_data = hdv2_red_data[hdv2_red_data[:, 1].argsort()]
     hdv2_green_data = np.array(([hdv2_calibration_data[:, 2].transpose()] +
