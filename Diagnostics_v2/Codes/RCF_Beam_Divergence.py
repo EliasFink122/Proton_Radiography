@@ -16,7 +16,6 @@ Methods:
 
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import RCF_Image_Crop as ic
 from RCF_Dose import ROOTDIR
 
@@ -106,15 +105,24 @@ def find_blob(brightness_curves: list[tuple[list, list]]) -> tuple[float, float]
         y_curve = curves[1]
 
         # Differentiate curves
+        x_vals = []
         x_dash = []
         for i, x in enumerate(x_curve):
+            x_vals.append(i)
             x_dash.append(x - x_curve[i-1])
+        y_vals = []
         y_dash = []
         for i, y in enumerate(y_curve):
+            y_vals.append(i)
             y_dash.append(y - y_curve[i-1])
+
+        plt.plot(x_vals, x_dash, label = "X'")
+        plt.plot(y_vals, y_dash, label = "Y'")
+        plt.legend()
+        plt.show()
 
 
 if __name__ == "__main__":
     images = image_conversion("Carroll_2023", "001", imshow = False, plot = False)
-    brght_curves = brightness_plot(images, plot = True)
-    find_blob(brght_curves)
+    curves_tuple = brightness_plot(images, plot = False)
+    find_blob(curves_tuple)
