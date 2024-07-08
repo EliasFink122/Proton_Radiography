@@ -15,6 +15,16 @@ Methods:
         just plot empty axes
     plot:
         generate full graph
+    maxwellian_dist_1d:
+        1D maxwellian distribution function
+    maxwellian_prob_1d:
+        1D maxellian probability distribution
+    log10_function:
+        log base 10 of maxwellian
+    lorentzian:
+        Lorentzian function value
+    letter_to_num:
+        conversion of letter to order in alphabet
 """
 
 import matplotlib as mpl
@@ -287,6 +297,19 @@ def log10_function(speed, n, T) -> float:
 
     maxwellian_log10 = np.log10(maxwellian)
     return maxwellian_log10
+
+def lorentzian(x: float, x0: float, gamma: float, a: float) -> float:
+    '''
+    Lorentzian function
+
+    Args:
+        x: independent variable
+        x0, gamma, A: parameters
+
+    Returns:
+        value of Lorentzian function
+    '''
+    return a*gamma/((x - x0)*(x - x0) + gamma*gamma)
 
 def letter_to_num(letter) -> int:
     '''
