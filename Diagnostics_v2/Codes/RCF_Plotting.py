@@ -30,7 +30,8 @@ Methods:
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.constants import elementary_charge, proton_mass as e, m_p
+from scipy.constants import elementary_charge as e
+from scipy.constants import proton_mass as m_p
 
 ROOTDIR = "/Users/eliasfink/Desktop/Proton_Radiography/Diagnostics_v2"
 
