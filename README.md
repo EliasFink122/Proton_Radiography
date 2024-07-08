@@ -3,7 +3,7 @@
 Codes to analyse RCF stacks from proton radiography.
 
 Use Diagnostics_v2 for full automation and processing of raw data materials.
-Find instructions for how to use this in instructions.txt file. (Elias Fink: elias.fink22@imperial.ac.uk)
+Find instructions for how to use this in instructions.md file. (Elias Fink: elias.fink22@imperial.ac.uk)
 
 Original version in Diagnostics_old folder. (Adam Dearling: add525@york.ac.uk)
 
