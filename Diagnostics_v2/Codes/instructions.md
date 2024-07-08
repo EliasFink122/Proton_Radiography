@@ -1,4 +1,4 @@
-## New code for RCF analysis ##
+## New code for RCF analysis
 
 Preparation
 - Specify full path of Diagnostics_v2 root directory in RCF_Plotting.py
