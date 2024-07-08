@@ -121,8 +121,11 @@ def find_blob(brightness_curves: list[tuple[list, list]],
     return [np.mean(xs), np.mean(ys)], [np.std(xs), np.std(ys)]
 
 if __name__ == "__main__":
+    print("Reading in data...")
     images = image_conversion("Carroll_2023", "001")
+    print("Creating curves...")
     curves_tuple = brightness_plot(images)
+    print("Finding blob coordinates...")
     blob_coords = find_blob(curves_tuple)
     x_str = f"x = {blob_coords[0][0]:.1f} +- {blob_coords[1][0]:.1f} px"
     y_str = f"y = {blob_coords[0][1]:.1f} +- {blob_coords[1][1]:.1f} px"
