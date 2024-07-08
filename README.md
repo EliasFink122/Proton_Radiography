@@ -2,12 +2,10 @@
 
 Codes to analyse RCF stacks from proton radiography.
 
-Author: Elias Fink (elias.fink22@imperial.ac.uk) \n
 Use Diagnostics_v2 for full automation and processing of raw data materials.
-Find instructions for how to use this in instructions.txt file.
+Find instructions for how to use this in instructions.txt file. (Elias Fink: elias.fink22@imperial.ac.uk)
 
-Author: Adam Dearling (add525@york.ac.uk) \n
-Original version in Diagnostics_old folder.
+Original version in Diagnostics_old folder. (Adam Dearling: add525@york.ac.uk)
 
 Data RCF image input format
 ![Input image](https://github.com/EliasFink122/Proton_Radiography/blob/main/README_Pictures/raw.jpg?raw=true)
