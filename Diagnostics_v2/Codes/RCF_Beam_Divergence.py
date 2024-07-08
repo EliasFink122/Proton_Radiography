@@ -136,6 +136,7 @@ def integrated_magnetic_field(temp: float, coords: list,
                               err: list = None) -> tuple[list[float], list[float]]:
     '''
     Use central blob coordinates to determine integrated magnetic field of proton path
+    As dv/dt = e/m * (v x B) the x divergence gives rise to the y magnetic field and vice versa.
 
     Args:
         temp: temperature of protons in MeV (vx, vy assumed to be zero)
