@@ -58,7 +58,7 @@ def image_conversion(project: str, shot: str, imshow = False, plot = False) -> l
 
     return new_imgs
 
-def brightness_plot(imgs: list[np.ndarray], plot = False) -> list[tuple[list, list]]:
+def brightness_plot(imgs: list[np.ndarray], plot = False) -> list[tuple[list[float], list[float]]]:
     '''
     Turn each brightness image into brightness plots for x and y direction
 
@@ -91,7 +91,7 @@ def brightness_plot(imgs: list[np.ndarray], plot = False) -> list[tuple[list, li
 
     return brightness_curves
 
-def find_blob(brightness_curves: list[tuple[list, list]],
+def find_blob(brightness_curves: list[tuple[list[float], list[float]]],
               plot = False) -> tuple[list[float], list[float]]:
     '''
     Find x and y coordinates of central blob
@@ -117,7 +117,8 @@ def find_blob(brightness_curves: list[tuple[list, list]],
             plt.plot(range(len(y_curve)), y_curve)
             plt.plot(x, 0, 'o')
             plt.plot(y, 0, 'o')
-            plt.show()
+    if plot:
+        plt.show()
     return [np.mean(xs), np.mean(ys)], [np.std(xs), np.std(ys)]
 
 if __name__ == "__main__":
