@@ -16,7 +16,9 @@ Methods:
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.constants import proton_mass, elementary_charge, speed_of_light as m_p, e, c
+from scipy.constants import proton_mass as m_p
+from scipy.constants import elementary_charge as e
+from scipy.constants import speed_of_light as c
 from RCF_Plotting import ROOTDIR
 import RCF_Image_Crop as ic
 
