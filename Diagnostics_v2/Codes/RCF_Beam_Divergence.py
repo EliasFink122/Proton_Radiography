@@ -135,7 +135,7 @@ def integrated_magnetic_field(temp: float, coords: list,
         integrated Bx and By
     '''
     e_j = temp * 1e6 * e + m_p * c**2
-    vz = np.sqrt(e_j**2 * c**2 - c**6 * m_p**2) / e_j
+    vz = np.sqrt(e_j**2 - (m_p * c**2)**2) * c / e_j
 
     int_magn_x = coords[1] * m_p * vz / e
     int_magn_y = coords[0] * m_p * vz / e
@@ -160,5 +160,6 @@ if __name__ == "__main__":
     print(f"Central blob coordinates: {x_str}, {y_str}")
     print("Calculating magnetic fields...")
     b_fields = integrated_magnetic_field(20, *blob_coords)
-    bx_str = f"x = {b_fields[0][0]:.1f} +- {b_fields[1][0]:.1f} T px"
-    by_str = f"y = {b_fields[0][1]:.1f} +- {b_fields[1][1]:.1f} T px"
+    bx_str = f"Bx = {b_fields[0][0]:.1f} +- {b_fields[1][0]:.1f} T px"
+    by_str = f"By = {b_fields[0][1]:.1f} +- {b_fields[1][1]:.1f} T px"
+    print(f"Integrated magnetic fields: {bx_str}, {bx_str}")
