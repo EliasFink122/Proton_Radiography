@@ -16,12 +16,10 @@ Methods:
 
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy.optimize as op
 import RCF_Image_Crop as ic
-from RCF_Plotting import lorentzian
-from RCF_Dose import ROOTDIR
+from RCF_Plotting import ROOTDIR
 
-def image_conversion(project: str, shot: str, imshow: bool, plot: bool) -> list[np.ndarray]:
+def image_conversion(project: str, shot: str, imshow = False, plot = False) -> list[np.ndarray]:
     '''
     Convert image from RGB to brightness
 
@@ -38,8 +36,9 @@ def image_conversion(project: str, shot: str, imshow: bool, plot: bool) -> list[
     for img in imgs:
         new_img = np.zeros(np.shape(img)[:2])
         for i, row in enumerate(img):
-            for j, pixel in enumerate(row):
+            for j, pixel in enumerate(row): # mean of pixel RGB is brightness value
                 new_img[i, j] = np.mean(pixel)
+        new_img = new_img[20:(len(new_img) - 20), 20:(len(new_img[0]) - 20)]
 
         new_imgs.append(new_img)
 
@@ -59,7 +58,7 @@ def image_conversion(project: str, shot: str, imshow: bool, plot: bool) -> list[
 
     return new_imgs
 
-def brightness_plot(imgs: list[np.ndarray], plot: bool) -> list[tuple[list, list]]:
+def brightness_plot(imgs: list[np.ndarray], plot = False) -> list[tuple[list, list]]:
     '''
     Turn each brightness image into brightness plots for x and y direction
 
@@ -73,14 +72,14 @@ def brightness_plot(imgs: list[np.ndarray], plot: bool) -> list[tuple[list, list
     for img in imgs:
         y_vals = []
         y_brightness = []
-        for i, row in enumerate(img):
+        for i, row in enumerate(img): # mean for each pixel row
             y_vals.append(i)
             y_brightness.append(np.mean(row))
         x_vals = []
         x_brightness = []
-        for i, row in enumerate(img.transpose()):
+        for i, column in enumerate(img.transpose()): # mean for each pixel column
             x_vals.append(i)
-            x_brightness.append(np.mean(row))
+            x_brightness.append(np.mean(column))
 
         brightness_curves.append((x_brightness, y_brightness))
 
@@ -92,7 +91,8 @@ def brightness_plot(imgs: list[np.ndarray], plot: bool) -> list[tuple[list, list
 
     return brightness_curves
 
-def find_blob(brightness_curves: list[tuple[list, list]]) -> tuple[float, float]:
+def find_blob(brightness_curves: list[tuple[list, list]],
+              plot = False) -> tuple[list[float], list[float]]:
     '''
     Find x and y coordinates of central blob
 
@@ -102,20 +102,28 @@ def find_blob(brightness_curves: list[tuple[list, list]]) -> tuple[float, float]
     Returns:
         position of central blob
     '''
+    xs = []
+    ys = []
     for curves in brightness_curves:
         x_curve = curves[0]
         y_curve = curves[1]
 
         x, y = np.argmin(x_curve), np.argmin(y_curve)
-        print(x, y)
+        xs.append(np.abs(x - len(x_curve)/2))
+        ys.append(np.abs(y - len(y_curve)/2))
 
-        plt.plot(range(len(x_curve)), x_curve)
-        plt.plot(range(len(y_curve)), y_curve)
-        plt.plot(0, x)
-        plt.plot(0, y)
-        plt.show()
+        if plot:
+            plt.plot(range(len(x_curve)), x_curve)
+            plt.plot(range(len(y_curve)), y_curve)
+            plt.plot(x, 0, 'o')
+            plt.plot(y, 0, 'o')
+            plt.show()
+    return [np.mean(xs), np.mean(ys)], [np.std(xs), np.std(ys)]
 
 if __name__ == "__main__":
-    images = image_conversion("Carroll_2023", "001", imshow = False, plot = False)
-    curves_tuple = brightness_plot(images, plot = False)
-    find_blob(curves_tuple)
+    images = image_conversion("Carroll_2023", "001")
+    curves_tuple = brightness_plot(images)
+    blob_coords = find_blob(curves_tuple)
+    x_str = f"x = {blob_coords[0][0]:.1f} +- {blob_coords[1][0]:.1f} px"
+    y_str = f"y = {blob_coords[0][1]:.1f} +- {blob_coords[1][1]:.1f} px"
+    print(f"Central blob coordinates: {x_str}, {y_str}")
