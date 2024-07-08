@@ -398,8 +398,16 @@ def plot_spectrum(x, y, label=None, x_2=None, y_2=None, label_2=None,
                   y_unit="perMeV"):
     '''
     Plot the proton spectrum.
-    
     By default x will be in MeV, while y will be in per J (laugh if not).
+
+    @author: Adam Dearling (add525@york.ac.uk)
+    @edited: Elias Fink (elias.fink22@imperial.ac.uk)
+    
+    Args:
+        x, y, x_2, y_2: input data
+        label, label_2: labels for data
+        y_line, y_line_2, y_line_fit_2: lines for Maxwellian distribution
+        y_unit: unit of y axis
     '''
 
     cmap = plt.get_cmap("tab10")
@@ -462,7 +470,7 @@ if __name__ == "__main__":
         SHOT = "001"
         STACK = "18"
         layers = ["A", "B", "C", "D", "E", "F", "G", "H", "I",
-                  "J", "K", "L", "M", "N", "O", "P", "Q"]
+                  "J", "K", "L", "M", "N", "O", "P", "Q"] # 17 layers
         SUFFIX = None
         edge = [100,20]
         SCANNER = "Epson_12000XL"

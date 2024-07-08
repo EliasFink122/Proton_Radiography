@@ -6,10 +6,11 @@ Created on Wed Jul 03 2024
 Converting RGB images into doses.
 
 Methods:
-    interpolate_calibration:
+    interpolate_calibration_hdv2, interpolate_calibration_ebt3:
         imports calibration files
         takes all calibration data and interpolates it for given material
         can be used for converting RGB value to dose
+        n.b: calibration algorithm can be improved (at the moment just taking mean of RGB interpolation)
     convert_to_dose:
         takes whole image and converts each pixel to dose value
         makes use of RCF_Image_Crop.crop_rot method
