@@ -10,10 +10,12 @@ Methods:
         imports calibration files
         takes all calibration data and interpolates it for given material
         can be used for converting RGB value to dose
-        n.b: calibration algorithm can be improved (at the moment just taking mean of RGB interpolation)
     convert_to_dose:
         takes whole image and converts each pixel to dose value
         makes use of RCF_Image_Crop.crop_rot method
+
+Possible future improvements:
+    better calibration algorithm rather than just mean of RGB prediction
 """
 
 import RCF_Image_Crop as ic

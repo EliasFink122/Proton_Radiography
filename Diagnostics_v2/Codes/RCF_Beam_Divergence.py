@@ -15,6 +15,9 @@ Methods:
         find the coordinates of the dark spot in each image
     integrated_magnetic_field:
         calculate integrated x and y magnetic fields that cause beam divergence
+
+Possible future improvements:
+    more precise blob detection algorithm for more magnetic field precision
 """
 
 import numpy as np
@@ -36,7 +39,7 @@ def image_conversion(project: str, shot: str, imshow = False, plot = False) -> l
     Returns:
         list of converted images
     '''
-    imgs = ic.crop_rot(ROOTDIR + "/Data/" + project + "/" + "Shot" + shot + "/raw.tif")
+    imgs = ic.crop_rot(ROOTDIR + "/Data/" + project + "/" + "Shot" + shot + "/raw.tif")[:12]
 
     new_imgs = []
     for img in imgs:
