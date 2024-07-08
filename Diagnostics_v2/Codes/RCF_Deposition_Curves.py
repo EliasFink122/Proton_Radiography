@@ -32,9 +32,8 @@ Methods:
         plot possible propagation through material with deposition marked
 """
 
-import RCF_Dose as dose
 import scipy.constants as const
-import RCF_Plotting as pm
+import RCF_Plotting as pm, ROOTDIR
 import numpy as np
 import pandas as pd
 import astropy.units as units
@@ -57,7 +56,7 @@ def get_mass_stopping_power(material: str, database="SRIM"):
     # Additionally, SRIM outputs electronic and nuclear stopping power separtely.
     # PlasmaPy wants the total stopping power, so we will combine here.
 
-    file = dose.ROOTDIR + "/Codes/Stopping_Power/" + database + "_" + material + ".txt"
+    file = ROOTDIR + "/Codes/Stopping_Power/" + database + "_" + material + ".txt"
 
     if database == "PSTAR":
         data = np.loadtxt(file, skiprows=8)
@@ -105,7 +104,7 @@ def get_target_density(material: str, database="SRIM") -> float:
         density of target layer
     '''
 
-    file = dose.ROOTDIR + "/Codes/Stopping_Power/" + database + "_" + material + ".txt"
+    file = ROOTDIR + "/Codes/Stopping_Power/" + database + "_" + material + ".txt"
 
     if database == "PSTAR":
         raise FileNotFoundError("PSTAR files do not contain target density.")
@@ -197,7 +196,7 @@ def build_layers(project: str, shot: str) -> list[str]:
     Returns:
         all layers (not just active layers)
     '''
-    path = dose.ROOTDIR + "/Data/" + project + "/Shot" + shot + "/RCF_Stack_Design.csv"
+    path = ROOTDIR + "/Data/" + project + "/Shot" + shot + "/RCF_Stack_Design.csv"
     stack_design = pd.read_csv(path, sep = ',')
 
     stack_material = stack_design.transpose()[0].tolist()[1:]
@@ -376,7 +375,7 @@ def get_deposition_curves(project: str, shot: str, energy_range_MeV=[1,40],
         ebands = calc_energy_bands(energy, deposition_curves, normalise = False,
                                    output = output_eband)
 
-        path = dose.ROOTDIR + "/Data/" + project + "/Shot" + shot + "/RCF_Stack_Design.csv"
+        path = ROOTDIR + "/Data/" + project + "/Shot" + shot + "/RCF_Stack_Design.csv"
         stack_design = pd.read_csv(path, sep = ',')
 
         rcf_material = stack_design.transpose()[0].tolist()[1:]

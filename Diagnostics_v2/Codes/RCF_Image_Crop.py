@@ -22,6 +22,7 @@ Methods:
 """
 import numpy as np
 from PIL import Image
+from RCF_Plotting import ROOTDIR
 
 def import_tif(path = 'sh1_st1.tif') -> np.ndarray:
     """
@@ -212,7 +213,7 @@ def crop_rot(path: str) -> list[np.ndarray]:
 
 if __name__ == "__main__":
     print("Importing image...")
-    image = import_tif()
+    image = import_tif(ROOTDIR + "/Data/Carroll_2023/Shot001/raw.tif")
     print("Slicing image...")
     images_sliced = slice_image(image)
     print("Rotating images...")

@@ -32,6 +32,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.constants import elementary_charge, proton_mass as e, m_p
 
+ROOTDIR = "/Users/eliasfink/Desktop/Proton_Radiography/Diagnostics_v2"
+
 def setup_fontsize(size):
     '''
     Setup font sizes

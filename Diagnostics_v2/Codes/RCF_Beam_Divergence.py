@@ -16,7 +16,9 @@ Methods:
 
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.optimize as op
 import RCF_Image_Crop as ic
+from RCF_Plotting import lorentzian
 from RCF_Dose import ROOTDIR
 
 def image_conversion(project: str, shot: str, imshow: bool, plot: bool) -> list[np.ndarray]:
@@ -104,23 +106,14 @@ def find_blob(brightness_curves: list[tuple[list, list]]) -> tuple[float, float]
         x_curve = curves[0]
         y_curve = curves[1]
 
-        # Differentiate curves
-        x_vals = []
-        x_dash = []
-        for i, x in enumerate(x_curve):
-            x_vals.append(i)
-            x_dash.append(x - x_curve[i-1])
-        y_vals = []
-        y_dash = []
-        for i, y in enumerate(y_curve):
-            y_vals.append(i)
-            y_dash.append(y - y_curve[i-1])
+        x, y = np.argmin(x_curve), np.argmin(y_curve)
+        print(x, y)
 
-        plt.plot(x_vals, x_dash, label = "X'")
-        plt.plot(y_vals, y_dash, label = "Y'")
-        plt.legend()
+        plt.plot(range(len(x_curve)), x_curve)
+        plt.plot(range(len(y_curve)), y_curve)
+        plt.plot(0, x)
+        plt.plot(0, y)
         plt.show()
-
 
 if __name__ == "__main__":
     images = image_conversion("Carroll_2023", "001", imshow = False, plot = False)

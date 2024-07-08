@@ -1,7 +1,7 @@
 Process: raw data -> cropping and rotating -> converting to dose -> converting to spectrum
 
 Preparation
-- Specify full path of Diagnostics_v2 root directory in RCF_Dose.py
+- Specify full path of Diagnostics_v2 root directory in RCF_Plotting.py
 - Put all raw data and stack details into Data folder.
 
 General

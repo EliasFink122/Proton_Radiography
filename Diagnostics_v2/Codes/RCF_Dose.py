@@ -21,9 +21,7 @@ import scipy.interpolate as inter
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
-ROOTDIR = "/Users/eliasfink/Desktop/Proton_Radiography/Diagnostics_v2"
-
+from RCF_Plotting import ROOTDIR
 
 def interpolate_calibration_hdv2(scanner = "Epson_12000XL"):
     '''

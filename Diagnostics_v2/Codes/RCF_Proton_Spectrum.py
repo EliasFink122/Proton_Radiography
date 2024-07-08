@@ -33,7 +33,7 @@ Methods:
 
 import RCF_Dose as dose
 import RCF_Deposition_Curves as dc
-import RCF_Plotting as pm
+import RCF_Plotting as pm, ROOTDIR
 import scipy.optimize as op
 import pandas as pd
 import numpy as np
@@ -86,7 +86,7 @@ def deposited_energy(project: str, shot: str) -> list[float]:
         list of deposited energies for each layer in MeV
     '''
     imgs_converted = dose.convert_to_dose(project, shot)
-    path = dose.ROOTDIR + "/Data/" + project + "/Shot" + shot + "/RCF_Stack_Design.csv"
+    path = ROOTDIR + "/Data/" + project + "/Shot" + shot + "/RCF_Stack_Design.csv"
     stack_design = pd.read_csv(path, sep = ',')
 
     deposited_energies = []
