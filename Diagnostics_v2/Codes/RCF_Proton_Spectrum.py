@@ -12,6 +12,23 @@ Methods:
     deposited_energy:
         uses dose and mass to determine total deposited energy in layer
         uses RCF_Dose.convert_to_dose method
+    calc_dNdE_BPD:
+        determine energy number product assuming all energy deposited in sharp Bragg peak
+    get_dNdE_spectrum_BPD:
+        use energy number product to determine spectrum of protons
+        iterate through layers to get full spectrum
+    interp_spectrum_deposition:
+        interpolate spectrum for later fitting with Maxwellian
+    get_dNdE_spectrum_iter:
+        different approach to obtaining spectrum
+        iteratively go from last layer to first to find contributions of different energies
+    get_proton_spectrum:
+        apply above mentioned methods to calculate the proton spectrum
+    spectrum_fit:
+        fit log10(Maxwellian) to log10(spectrum) to determine temperature and number of protons
+    plot_spectrum:
+        plot parameters of spectrum with fit on graph
+        also plot respective deposition curves
 """
 
 import RCF_Dose as dose
@@ -68,7 +85,7 @@ def deposited_energy(project: str, shot: str) -> list[float]:
     Returns:
         list of deposited energies for each layer in MeV
     '''
-    imgs_converted = dose.convert_to_dose(project, shot, log = False)
+    imgs_converted = dose.convert_to_dose(project, shot)
     path = dose.ROOTDIR + "/Data/" + project + "/Shot" + shot + "/RCF_Stack_Design.csv"
     stack_design = pd.read_csv(path, sep = ',')
 
@@ -300,7 +317,6 @@ def get_proton_spectrum(stack_energy, deposition_curves, deposition_energy_MeV,
         stack_bragg_MeV = bragg_peak_MeV
         stack_deposition = deposition_curves
         stack_ebands_MeV = deposition_ebands_MeV
-
     if method == "BPD":
         stack_dNdE = get_dNdE_spectrum_BPD(deposition_energy_MeV, stack_deposition,
                                            stack_ebands_MeV, stack_energy,
@@ -408,9 +424,9 @@ def plot_spectrum(x, y, label=None, x_2=None, y_2=None, label_2=None,
 
     fig, ax = pm.plot_figure_axis()
 
-    ax.scatter(x, y*scale, label=label, s=50)
+    ax.scatter(x, y*1e6, label=label, s=50) # y*scale
     if y_2 is not None and x_2 is not None:
-        ax.scatter(x_2, y_2*scale, label=label_2, marker="x", s=50)
+        ax.scatter(x_2, y_2*1e6, label=label_2, marker="x", s=50) # y*scale
     if x_line is not None and y_line is not None:
         ax.plot(x_line, y_line*scale, label=label_line, color="k", linestyle="--", zorder=0)
         if y_line_fit is not None:
@@ -430,7 +446,7 @@ def plot_spectrum(x, y, label=None, x_2=None, y_2=None, label_2=None,
 
     ax.set_yscale("log")
 
-    ax.set_title("shot" + str(shot))
+    ax.set_title("shot" + str(SHOT))
     if label is not None:
         ax.legend()
 
@@ -438,32 +454,32 @@ def plot_spectrum(x, y, label=None, x_2=None, y_2=None, label_2=None,
 
 
 if __name__ == "__main__":
-    project = "Carroll_2023"
+    PROJECT = "Carroll_2023"
 
-    if project == "Carroll_2023":
+    if PROJECT == "Carroll_2023":
         e_range = [1,120]
-        design = None
-        shot = "001"
-        stack = "18"
+        DESIGN = None
+        SHOT = "001"
+        STACK = "18"
         layers = ["A", "B", "C", "D", "E", "F", "G", "H", "I",
                   "J", "K", "L", "M", "N", "O", "P", "Q"]
-        suffix = None
+        SUFFIX = None
         edge = [100,20]
-        scanner = "Epson_12000XL"
-        material_type = None
+        SCANNER = "Epson_12000XL"
+        MATERIAL_TYPE = None
         OD = False
-        clean = True
+        CLEAN = True
         channels = [1,1,1]
-        dpi = 300
+        DPI = 300
 
     deposition_curves, deposition_energy = dc.get_deposition_curves(energy_range_MeV=e_range,
-                                                            project=project, shot=shot,
+                                                            project=PROJECT, shot=SHOT,
                                                             dE=0.00625, dx=0.25,
                                                             plot=True)
 
-    stack_dose = dose.convert_to_dose(project, shot) # Dose in Grays
+    stack_dose = dose.convert_to_dose(PROJECT, SHOT) # Dose in Grays
 
-    stack_energy = deposited_energy(project, shot) # Energy in J, tuple including error
+    stack_energy = deposited_energy(PROJECT, SHOT) # Energy in J, tuple including error
 
     stack_energy_total = np.array([np.sum(layer_energy) for layer_energy in stack_energy]) # Energy in J
     # stack_error_total = np.array([np.sum(layer_energy[1]) for layer_energy in stack_energy])
