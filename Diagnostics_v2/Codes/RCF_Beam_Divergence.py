@@ -144,8 +144,8 @@ def integrated_magnetic_field(temp: float, coords: list,
     Returns:
         integrated Bx and By
     '''
-    # e_j = temp * 1e6 * e + m_p * c**2
-    vz = c # np.sqrt(e_j**2 - (m_p * c**2)**2) * c / e_j
+    e_j = temp * 1e6 * e + m_p * c**2
+    vz = np.sqrt(e_j**2 - (m_p * c**2)**2) * c / e_j
 
     int_magn_x = coords[1] * m_p * vz / e
     int_magn_y = coords[0] * m_p * vz / e
