@@ -10,6 +10,8 @@ Methods:
         converts all RCF images into brightness values
     brightness_plot:
         determine change of brightness over width and height
+    find_blob:
+        find the coordinates of the dark spot in each image
 """
 
 import numpy as np
@@ -18,7 +20,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import RCF_Image_Crop as ic
 from RCF_Dose import ROOTDIR
 
-def image_conversion(project: str, shot: str, plot: bool) -> list[np.ndarray]:
+def image_conversion(project: str, shot: str, imshow: bool, plot: bool) -> list[np.ndarray]:
     '''
     Convert image from RGB to brightness
 
@@ -39,6 +41,10 @@ def image_conversion(project: str, shot: str, plot: bool) -> list[np.ndarray]:
                 new_img[i, j] = np.mean(pixel)
 
         new_imgs.append(new_img)
+
+        if imshow: # show black-white brightness images
+            plt.imshow(new_img, cmap = 'rainbow')
+            plt.show()
 
         if plot: # plot 3d surfaces of brightness
             x = range(len(new_img.transpose()))
@@ -62,7 +68,7 @@ def brightness_plot(imgs: list[np.ndarray], plot: bool) -> list[tuple[list, list
     Returns:
         list of brightness for each image in x and y
     '''
-    values = []
+    brightness_curves = []
     for img in imgs:
         y_vals = []
         y_brightness = []
@@ -75,7 +81,7 @@ def brightness_plot(imgs: list[np.ndarray], plot: bool) -> list[tuple[list, list
             x_vals.append(i)
             x_brightness.append(np.mean(row))
 
-        values.append((x_brightness, y_brightness))
+        brightness_curves.append((x_brightness, y_brightness))
 
         if plot: # plot x and y brightness curves
             plt.plot(y_vals, y_brightness, label = "Y-range")
@@ -83,8 +89,32 @@ def brightness_plot(imgs: list[np.ndarray], plot: bool) -> list[tuple[list, list
             plt.legend()
             plt.show()
 
-    return values
+    return brightness_curves
+
+def find_blob(brightness_curves: list[tuple[list, list]]) -> tuple[float, float]:
+    '''
+    Find x and y coordinates of central blob
+
+    Args:
+        brightness_curves: input brightness distributions for x and y
+
+    Returns:
+        position of central blob
+    '''
+    for curves in brightness_curves:
+        x_curve = curves[0]
+        y_curve = curves[1]
+
+        # Differentiate curves
+        x_dash = []
+        for i, x in enumerate(x_curve):
+            x_dash.append(x - x_curve[i-1])
+        y_dash = []
+        for i, y in enumerate(y_curve):
+            y_dash.append(y - y_curve[i-1])
+
 
 if __name__ == "__main__":
-    images = image_conversion("Carroll_2023", "001", plot = False)
-    brightness_plot(images, plot = True)
+    images = image_conversion("Carroll_2023", "001", imshow = False, plot = False)
+    brght_curves = brightness_plot(images, plot = True)
+    find_blob(brght_curves)
