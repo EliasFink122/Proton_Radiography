@@ -162,6 +162,6 @@ if __name__ == "__main__":
     print(f"Central blob coordinates: {x_str}, {y_str}")
     print("Calculating magnetic fields...")
     b_fields = integrated_magnetic_field(20, *blob_coords)
-    bx_str = f"Bx = {b_fields[0][0]} +- {b_fields[1][0]} T px"
-    by_str = f"By = {b_fields[0][1]} +- {b_fields[1][1]} T px"
+    bx_str = f"Bx = {b_fields[0][0]:.1f} +- {b_fields[1][0]:.1f} T px"
+    by_str = f"By = {b_fields[0][1]:.1f} +- {b_fields[1][1]:.1f} T px"
     print(f"Integrated magnetic fields: {bx_str}, {by_str}")
