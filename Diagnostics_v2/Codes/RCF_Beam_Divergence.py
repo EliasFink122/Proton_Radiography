@@ -4,6 +4,7 @@ Created on Mon Jul 08 2024
 @author: Elias Fink (elias.fink22@imperial.ac.uk)
 
 Finding the beam divergence of the proton laser on the RCF plates.
+Assumes beam directed perpendicular to RCF stack and at constant speed.
 
 Methods:
     image_conversion:
@@ -12,6 +13,8 @@ Methods:
         determine change of brightness over width and height
     find_blob:
         find the coordinates of the dark spot in each image
+    integrated_magnetic_field:
+        calculate integrated x and y magnetic fields that cause beam divergence
 """
 
 import numpy as np
@@ -42,7 +45,7 @@ def image_conversion(project: str, shot: str, imshow = False, plot = False) -> l
         for i, row in enumerate(img):
             for j, pixel in enumerate(row): # mean of pixel RGB is brightness value
                 new_img[i, j] = np.mean(pixel)
-        new_img = new_img[20:(len(new_img) - 20), 20:(len(new_img[0]) - 20)]
+        new_img = new_img[20:(len(new_img) - 20), 50:(len(new_img[0]) - 50)]
 
         new_imgs.append(new_img)
 
