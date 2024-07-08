@@ -14,4 +14,5 @@ Proton spectrum
 - Use RCF_Proton_Spectrum.py to find the energy spectrum and temperature of protons.
 
 Beam divergence
-- Use RCF_Beam_Divergence.py to determine how much the proton beam diverges from the centre of the stack.
+- Use RCF_Beam_Divergence.py to determine how much the proton beam diverges from the centre of the stack
+and determine the integrated magnetic fields.
