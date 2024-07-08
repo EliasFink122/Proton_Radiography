@@ -16,8 +16,9 @@ Methods:
 
 import numpy as np
 import matplotlib.pyplot as plt
-import RCF_Image_Crop as ic
+from scipy.constants import proton_mass, elementary_charge, speed_of_light as m_p, e, c
 from RCF_Plotting import ROOTDIR
+import RCF_Image_Crop as ic
 
 def image_conversion(project: str, shot: str, imshow = False, plot = False) -> list[np.ndarray]:
     '''
@@ -52,8 +53,8 @@ def image_conversion(project: str, shot: str, imshow = False, plot = False) -> l
 
             fig = plt.figure()
             subpl = fig.add_subplot(111, projection = '3d')
-            X, Y = np.meshgrid(x, y)
-            subpl.plot_surface(X, Y, new_img)
+            x, y = np.meshgrid(x, y)
+            subpl.plot_surface(x, y, new_img)
             plt.show()
 
     return new_imgs
@@ -121,6 +122,32 @@ def find_blob(brightness_curves: list[tuple[list[float], list[float]]],
         plt.show()
     return [np.mean(xs), np.mean(ys)], [np.std(xs), np.std(ys)]
 
+def integrated_magnetic_field(temp: float, coords: list,
+                              err: list = None) -> tuple[list[float], list[float]]:
+    '''
+    Use central blob coordinates to determine integrated magnetic field of proton path
+
+    Args:
+        temp: temperature of protons in MeV (vx, vy assumed to be zero)
+        x, y: central blob coordinates
+    
+    Returns:
+        integrated Bx and By
+    '''
+    e_j = temp * 1e6 * e + m_p * c**2
+    vz = np.sqrt(e_j**2 * c**2 - c**6 * m_p**2) / e_j
+
+    int_magn_x = coords[1] * m_p * vz / e
+    int_magn_y = coords[0] * m_p * vz / e
+
+    if err is not None:
+        err_magn_x = err[1] * m_p * vz / e
+        err_magn_y = err[0] * m_p * vz / e
+    else:
+        err_magn_x, err_magn_y = 0, 0
+
+    return [int_magn_x, int_magn_y], [err_magn_x, err_magn_y]
+
 if __name__ == "__main__":
     print("Reading in data...")
     images = image_conversion("Carroll_2023", "001")
@@ -131,3 +158,7 @@ if __name__ == "__main__":
     x_str = f"x = {blob_coords[0][0]:.1f} +- {blob_coords[1][0]:.1f} px"
     y_str = f"y = {blob_coords[0][1]:.1f} +- {blob_coords[1][1]:.1f} px"
     print(f"Central blob coordinates: {x_str}, {y_str}")
+    print("Calculating magnetic fields...")
+    b_fields = integrated_magnetic_field(20, *blob_coords)
+    bx_str = f"x = {b_fields[0][0]:.1f} +- {b_fields[1][0]:.1f} T px"
+    by_str = f"y = {b_fields[0][1]:.1f} +- {b_fields[1][1]:.1f} T px"
