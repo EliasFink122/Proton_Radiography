@@ -200,7 +200,7 @@ def crop_rot(path: str) -> list[np.ndarray]:
     Crop and rotate image properly
     
     Args:
-        path: fullpath to image
+        path: absolute path to image
 
     Returns:
         list of cropped, rotated and smoothed images as numpy arrays
