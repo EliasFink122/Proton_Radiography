@@ -37,6 +37,7 @@ def image_conversion(project: str, shot: str, imshow = False, plot = False) -> l
 
     new_imgs = []
     for img in imgs:
+        # convert pixel values to brightness and slice of edges
         new_img = np.zeros(np.shape(img)[:2])
         for i, row in enumerate(img):
             for j, pixel in enumerate(row): # mean of pixel RGB is brightness value
@@ -103,7 +104,7 @@ def find_blob(brightness_curves: list[tuple[list[float], list[float]]],
         brightness_curves: input brightness distributions for x and y
 
     Returns:
-        position of central blob
+        position of central blob (from centre of image)
     '''
     xs = []
     ys = []
@@ -111,6 +112,7 @@ def find_blob(brightness_curves: list[tuple[list[float], list[float]]],
         x_curve = curves[0]
         y_curve = curves[1]
 
+        # darkest spot in image from centre
         x, y = np.argmin(x_curve), np.argmin(y_curve)
         xs.append(np.abs(x - len(x_curve)/2))
         ys.append(np.abs(y - len(y_curve)/2))
