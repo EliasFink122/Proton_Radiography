@@ -7,3 +7,4 @@ Process: raw data -> cropping and rotating -> converting to dose -> converting t
 - Use RCF_Dose.py to convert all stack layers into dose pictures.
 - Use RCF_Deposition_Curves.py to determine the protons of which energy deposit into which layer.
 - Use RCF_Proton_Spectrum.py to find the energy spectrum and temperature of protons.
+- Use RCF_Beam_Divergence.py to determine how much the proton beam diverges from the centre of the stack.
