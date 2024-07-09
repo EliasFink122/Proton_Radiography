@@ -33,7 +33,7 @@ import numpy as np
 from scipy.constants import elementary_charge as e
 from scipy.constants import proton_mass as m_p
 
-ROOTDIR = "/Users/eliasfink/Desktop/Proton_Radiography/Diagnostics_v2"
+ROOTDIR = "/Users/eliasfink/Desktop/York/Proton_Radiography/Diagnostics_v2"
 
 def setup_fontsize(size):
     '''

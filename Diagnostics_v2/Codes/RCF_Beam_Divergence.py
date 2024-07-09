@@ -141,7 +141,7 @@ def integrated_magnetic_field(temp: float, coords: list,
     Args:
         temp: temperature of protons in MeV (vx, vy assumed to be zero)
         x, y: central blob coordinates
-    
+
     Returns:
         integrated Bx and By
     '''
