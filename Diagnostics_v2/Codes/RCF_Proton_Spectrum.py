@@ -367,7 +367,6 @@ def spectrum_fit(energy_MeV, stack_bragg_MeV, stack_dNdE, error=False, plot=Fals
         ax.set_yscale("log")
         fig.tight_layout()
 
-    print(stack_dNdE)
     popt, pcov = op.curve_fit(pm.log10_function, stack_bragg_MeV, np.log10(stack_dNdE),
                         p0=guess, bounds=(lower_bound, upper_bound), maxfev = 10000)
     pstd = np.diag(pcov)
