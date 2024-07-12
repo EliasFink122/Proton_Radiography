@@ -258,7 +258,7 @@ def maxwellian_dist_1d(speed, n, T) -> float:
     Returns:
         value of Maxwell-Boltzmann distribution
     '''
-    dist = n * np.power(2*np.pi*T*e*1e6/m_p, -1/2) * np.exp(-speed/T)
+    dist = n * np.sqrt(m_p/(2*np.pi*e*T)) * np.exp(-speed/(e*T))
     return dist
 
 def maxwellian_prob_1d(speed, n, T) -> float:

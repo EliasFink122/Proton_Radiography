@@ -33,7 +33,8 @@ Methods:
 """
 
 import scipy.constants as const
-import RCF_Plotting as pm, ROOTDIR
+import RCF_Plotting as pm
+from RCF_Plotting import ROOTDIR
 import numpy as np
 import pandas as pd
 import astropy.units as units

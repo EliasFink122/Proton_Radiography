@@ -33,7 +33,8 @@ Methods:
 
 import RCF_Dose as dose
 import RCF_Deposition_Curves as dc
-import RCF_Plotting as pm, ROOTDIR
+import RCF_Plotting as pm
+from RCF_Plotting import ROOTDIR
 import scipy.optimize as op
 import pandas as pd
 import numpy as np
@@ -366,7 +367,8 @@ def spectrum_fit(energy_MeV, stack_bragg_MeV, stack_dNdE, error=False, plot=Fals
         ax.set_yscale("log")
         fig.tight_layout()
 
-    popt, pcov = op.curve_fit(pm.log10_function, stack_bragg_MeV, np.log10(stack_dNdE*e*1e6),
+    print(stack_dNdE)
+    popt, pcov = op.curve_fit(pm.log10_function, stack_bragg_MeV, np.log10(stack_dNdE),
                         p0=guess, bounds=(lower_bound, upper_bound), maxfev = 10000)
     pstd = np.diag(pcov)
 
