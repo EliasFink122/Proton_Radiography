@@ -368,7 +368,7 @@ def spectrum_fit(energy_MeV, stack_bragg_MeV, stack_dNdE, error=False, plot=Fals
         fig.tight_layout()
     print(stack_bragg_MeV[:14], stack_dNdE[:14]*1e6*e)
 
-    popt, pcov = op.curve_fit(pm.log10_function, stack_bragg_MeV[:-1], np.log10(stack_dNdE[:-1]*e*1e6),
+    popt, pcov = op.curve_fit(pm.log10_function, stack_bragg_MeV[:-1], np.log10(stack_dNdE[:-1]*e*1e2),
                         p0=guess, bounds=(lower_bound, upper_bound), maxfev = 10000)
     print(popt, pcov)
     pstd = np.diag(pcov)
