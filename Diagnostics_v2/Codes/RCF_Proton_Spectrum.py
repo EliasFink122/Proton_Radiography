@@ -366,8 +366,9 @@ def spectrum_fit(energy_MeV, stack_bragg_MeV, stack_dNdE, error=False, plot=Fals
         ax.set_xlim(xmin=0, xmax=np.round(stack_bragg_MeV[-1]+5,-1))
         ax.set_yscale("log")
         fig.tight_layout()
-    print(stack_bragg_MeV, stack_dNdE)
-    popt, pcov = op.curve_fit(pm.log10_function, stack_bragg_MeV[:-1], np.log10(stack_dNdE[:-1]*1e6*e),
+    print(stack_bragg_MeV[:14], stack_dNdE[:14]*1e6*e)
+
+    popt, pcov = op.curve_fit(pm.log10_function, stack_bragg_MeV[:-1], np.log10(stack_dNdE[:-1]*e*1e6),
                         p0=guess, bounds=(lower_bound, upper_bound), maxfev = 10000)
     print(popt, pcov)
     pstd = np.diag(pcov)
@@ -384,8 +385,8 @@ def spectrum_fit(energy_MeV, stack_bragg_MeV, stack_dNdE, error=False, plot=Fals
             ax.errorbar(stack_bragg_MeV, stack_dNdE*e*1e6,
                         yerr=stack_dNdE_error*e*1e6, fmt='x')
         else:
-            ax.scatter(stack_bragg_MeV, stack_dNdE*e*1e6)
-        ax.plot(energy_MeV, dNdE_fit*e*1e6)
+            ax.scatter(stack_bragg_MeV[:-14], stack_dNdE[:-14])
+        ax.plot(energy_MeV, dNdE_fit)
         ax.set_xlabel("$E_\mathrm{k}$ (MeV)")
         ax.set_ylabel("$dN/dE$ (MeV$^{-1}$)")
         ax.set_xlim(xmin=0, xmax=np.round(stack_bragg_MeV[-1]+5,-1))

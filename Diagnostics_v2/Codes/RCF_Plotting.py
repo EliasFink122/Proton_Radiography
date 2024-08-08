@@ -258,13 +258,13 @@ def maxwellian_dist_1d(speed, n, T) -> float:
     Returns:
         value of Maxwell-Boltzmann distribution
     '''
-    dist = n * np.sqrt(m_p/(2*np.pi*e*T)) * np.exp(-speed/(e*T))
+    dist = n * np.sqrt(m_p/(2*np.pi*1e6*e*T)) * np.exp(-speed/(2*T))
     return dist
 
 def maxwellian_prob_1d(speed, n, T) -> float:
     '''
     Maxwellian probability function in 1D
-    
+
     Args:
         speed: kinetic energy in MeV
         n: number of protons
@@ -297,7 +297,7 @@ def log10_function(speed, n, T) -> float:
         maxwellian = maxwellian_dist_1d(speed, n, T)
     elif function == "probability":
         maxwellian = maxwellian_prob_1d(speed, n, T)
-
+    
     maxwellian_log10 = np.log10(maxwellian)
     return maxwellian_log10
 
