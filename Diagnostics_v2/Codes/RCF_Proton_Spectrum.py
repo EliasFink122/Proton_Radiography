@@ -483,7 +483,7 @@ if __name__ == "__main__":
         channels = [1,1,1]
         DPI = 300
 
-    elif PROJECT == "Carrol_2020":
+    elif PROJECT == "Carroll_2020":
         e_range = [1,120]
         DESIGN = None
         SHOT = "002"
