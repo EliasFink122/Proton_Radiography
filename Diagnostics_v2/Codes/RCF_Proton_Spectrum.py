@@ -465,12 +465,28 @@ def plot_spectrum(x, y, label=None, x_2=None, y_2=None, label_2=None,
 
 
 if __name__ == "__main__":
-    PROJECT = "Carroll_2023"
+    PROJECT = "Carroll_2020"
 
     if PROJECT == "Carroll_2023":
         e_range = [1,120]
         DESIGN = None
         SHOT = "001"
+        STACK = "18"
+        layers = ["A", "B", "C", "D", "E", "F", "G", "H", "I",
+                  "J", "K", "L", "M", "N", "O", "P", "Q"] # 17 layers
+        SUFFIX = None
+        edge = [100,20]
+        SCANNER = "Epson_12000XL"
+        MATERIAL_TYPE = None
+        OD = False
+        CLEAN = True
+        channels = [1,1,1]
+        DPI = 300
+
+    elif PROJECT == "Carrol_2020":
+        e_range = [1,120]
+        DESIGN = None
+        SHOT = "002"
         STACK = "18"
         layers = ["A", "B", "C", "D", "E", "F", "G", "H", "I",
                   "J", "K", "L", "M", "N", "O", "P", "Q"] # 17 layers
