@@ -206,7 +206,7 @@ def get_dNdE_spectrum_iter(E, R_stack, dE_stack, D_stack, tol=0.05,
         dNdE_stack[-1] = calc_dNdE_BPD(E, R_stack[-1], dE_stack[-1,0], dE_stack[-1,1],
                                        D_stack[-1])
     else:
-        dNdE_guess = pm.maxwellian_prob_1d(E, T_n) # (E, N_n, T_n)
+        dNdE_guess = pm.maxwellian_prob_1d(E, N_n, T_n)
 
         # Energy coordinates that integral will be calculated between
         Ec_arg = np.argmin(abs(bragg_stack[-1]-E)) # Position of final bragg peak
@@ -353,7 +353,7 @@ def spectrum_fit(energy_MeV, stack_bragg_MeV, stack_dNdE, error=False, plot=Fals
         stack_dNdE_error = stack_dNdE[1]
         stack_dNdE = stack_dNdE[0]
 
-    guess = [15] # [1e12, 10]
+    guess = [4.3e12, 15]
     lower_bound = [-np.inf, -np.inf]
     upper_bound = [np.inf, np.inf]
 
@@ -367,15 +367,15 @@ def spectrum_fit(energy_MeV, stack_bragg_MeV, stack_dNdE, error=False, plot=Fals
         ax.set_yscale("log")
         fig.tight_layout()
 
-    popt, pcov = op.curve_fit(pm.log10_function, stack_bragg_MeV[:12], np.log10(stack_dNdE[:12]*e*1e6),
+    popt, pcov = op.curve_fit(pm.log10_function, stack_bragg_MeV[:-1], np.log10(stack_dNdE[:-1]*e*1e6),
                         p0=guess, bounds=(lower_bound, upper_bound), maxfev = 10000)
 
     pstd = np.diag(pcov)
 
     dNdE_fit = np.power(10, pm.log10_function(energy_MeV, *popt))
 
-    print(f"Temp = {popt[0]*11} +- {pstd[0]*11} MeV") # [1]
-    # print(f"Number = {popt[0]} +- {pstd[0]} particles")
+    print(f"Temp = {popt[1]} +- {pstd[1]} MeV")
+    print(f"Number = {popt[0]} +- {pstd[0]} particles")
 
     if plot:
         fig, ax = pm.plot_figure_axis()
@@ -420,16 +420,16 @@ def plot_spectrum(x, y, label=None, x_2=None, y_2=None, label_2=None,
 
     if y_line_fit is not None:
         y_line = pm.maxwellian_prob_1d(x_line, *y_line_fit[0])
-        y_line_p = pm.maxwellian_prob_1d(x_line, # y_line_fit[0][0],
-                                          y_line_fit[0][0]+y_line_fit[1][0]) # [0][1], [1][1]
-        y_line_m = pm.maxwellian_prob_1d(x_line, # y_line_fit[0][0],
-                                          y_line_fit[0][0]-y_line_fit[1][0]) # [0][1], [1][1]
+        y_line_p = pm.maxwellian_prob_1d(x_line, y_line_fit[0][0],
+                                          y_line_fit[0][1]+y_line_fit[1][1])
+        y_line_m = pm.maxwellian_prob_1d(x_line, y_line_fit[0][0],
+                                          y_line_fit[0][1]-y_line_fit[1][1])
     if y_line_fit_2 is not None:
         y_line_2 = pm.maxwellian_prob_1d(x_line, *y_line_fit_2[0])
-        y_line_p_2 = pm.maxwellian_prob_1d(x_line, # y_line_fit[0][0],
-                                          y_line_fit[0][0]+y_line_fit[1][0]) # [0][1], [1][1]
-        y_line_m_2 = pm.maxwellian_prob_1d(x_line, # y_line_fit[0][0],
-                                          y_line_fit[0][0]-y_line_fit[1][0]) # [0][1], [1][1]
+        y_line_p_2 = pm.maxwellian_prob_1d(x_line, y_line_fit[0][0],
+                                          y_line_fit[0][1]+y_line_fit[1][1])
+        y_line_m_2 = pm.maxwellian_prob_1d(x_line, y_line_fit[0][0],
+                                          y_line_fit[0][1]-y_line_fit[1][1])
 
     fig, ax = pm.plot_figure_axis()
 
